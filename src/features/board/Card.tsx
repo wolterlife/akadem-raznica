@@ -58,6 +58,7 @@ export function Card({
     <article
       ref={setNodeRef}
       style={style}
+      data-card-id={item.id}
       className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} ${both ? 'card--shared-owners' : ''} match-${match} card--link-${linkState}`}
       {...listeners}
       {...attributes}

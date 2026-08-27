@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -15,6 +15,7 @@ import type { Assessment, ColumnId } from '../../types'
 import type { PresenceUser } from '../../presence'
 import { Card } from './Card'
 import { Column } from './Column'
+import { LinkArrows } from './LinkArrows'
 import {
   itemsByColumn,
   orderedColumnItems,
@@ -47,6 +48,7 @@ export function KanbanBoard({
   onEdit,
   onMove,
 }: Props) {
+  const boardRef = useRef<HTMLDivElement>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -71,6 +73,11 @@ export function KanbanBoard({
       done: itemsByColumn(visible, 'done'),
     }
   }, [visible, items, sortKey])
+
+  const relatedIds = useMemo(() => {
+    if (!relatedLinks || !hoveredId) return []
+    return [...relatedLinks.keys()].filter((id) => id !== hoveredId)
+  }, [relatedLinks, hoveredId])
 
   function linkStateFor(id: string): 'idle' | 'focus' | 'related' | 'dim' {
     if (!relatedLinks) return 'idle'
@@ -139,7 +146,12 @@ export function KanbanBoard({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
-      <div className="board">
+      <div className="board" ref={boardRef}>
+        <LinkArrows
+          boardRef={boardRef}
+          hoveredId={hoveredId}
+          relatedIds={relatedIds}
+        />
         {COLUMNS.map((col) => {
           const colItems = columnItems[col.id]
           return (
