@@ -114,7 +114,12 @@ export function Card({
       {both && <p className="card__match card__match--shared">нужно D и M</p>}
       {!both && match === 'ideal' && (
         <p className="card__match card__match--ideal">
-          тот же предмет · есть у обоих
+          тот же предмет · тот же препод
+        </p>
+      )}
+      {!both && match === 'subject' && (
+        <p className="card__match card__match--subject">
+          общий предмет · разный препод
         </p>
       )}
       {!both && match === 'professor' && (

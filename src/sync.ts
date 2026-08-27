@@ -78,8 +78,9 @@ export function boardsEqual(a: Assessment[], b: Assessment[]) {
 export { isSyncConfigured }
 
 /**
- * ideal — оба студента, один предмет (+ желательно один препод)
- * professor — разные предметы, но общий преподаватель
+ * ideal — одна карточка на D+M, или один предмет + один препод у обоих
+ * subject — один предмет, разные преподы
+ * professor — разные предметы, общий преподаватель
  */
 export function getMatchKind(
   card: Assessment,
@@ -93,18 +94,21 @@ export function getMatchKind(
   const subj = normalize(card.subject)
   const prof = profKey(card.professor)
 
-  const idealPair = others.some((a) => {
+  const subjectPeers = others.filter((a) => {
     const coversBoth =
       new Set([...card.owners, ...a.owners]).has('D') &&
       new Set([...card.owners, ...a.owners]).has('M')
-    const otherProf = profKey(a.professor)
-    return (
-      coversBoth &&
-      normalize(a.subject) === subj &&
-      (prof == null || otherProf == null || otherProf === prof)
-    )
+    return coversBoth && normalize(a.subject) === subj
   })
-  if (idealPair) return 'ideal'
+
+  if (subjectPeers.length) {
+    const sameProf = subjectPeers.some((a) => {
+      const otherProf = profKey(a.professor)
+      return prof == null || otherProf == null || otherProf === prof
+    })
+    if (sameProf) return 'ideal'
+    return 'subject'
+  }
 
   if (prof == null) return 'none'
 
@@ -171,11 +175,11 @@ export function getRelatedLinks(
   return map
 }
 
-function normalize(value: string) {
+export function normalize(value: string) {
   return value.trim().toLowerCase()
 }
 
-function profKey(value: string) {
+export function profKey(value: string) {
   const n = normalize(value)
   if (!n || n === '—' || n === '-' || n === '–' || n === '?') return null
   return n

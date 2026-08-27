@@ -93,6 +93,7 @@ export default function App() {
       <KanbanBoard
         items={items}
         visible={visible}
+        sortKey={sortKey}
         hoveredId={hoveredId}
         onHoverChange={onCardHover}
         editorsByCard={editorsByCard}

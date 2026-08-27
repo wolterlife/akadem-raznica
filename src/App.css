@@ -207,7 +207,7 @@
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 8px;
   padding: 12px;
   border: 1px solid var(--line);
@@ -381,9 +381,75 @@
 
 .board {
   display: grid;
-  grid-template-columns: repeat(3, minmax(240px, 1fr));
+  grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
   gap: 14px;
   min-height: 520px;
+  align-items: start;
+}
+
+.board-pair {
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(16, 19, 28, 0.96), rgba(11, 13, 18, 0.94));
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.board-pair__heads {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.column__head--pair {
+  padding: 14px 16px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.column__head--pair.column--d {
+  border-right: 1px solid var(--line);
+}
+
+.board-pair__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  flex: 1;
+}
+
+.align-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.align-row__cell {
+  min-width: 0;
+  border-radius: 14px;
+  transition: background 0.15s ease, outline-color 0.15s ease;
+}
+
+.align-row__cell--over {
+  background: rgba(142, 180, 255, 0.06);
+  outline: 1px dashed rgba(142, 180, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.card-slot {
+  min-height: 72px;
+  height: 100%;
+  border-radius: 14px;
+  border: 1px dashed rgba(232, 236, 244, 0.08);
+  background: rgba(0, 0, 0, 0.12);
 }
 
 .column {
@@ -480,24 +546,34 @@
 }
 
 .card--link-focus {
-  border: 2px solid #8eb4ff;
-  outline: 2px solid rgba(142, 180, 255, 0.35);
-  outline-offset: 2px;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  border: 2px solid #c5dcff;
+  outline: 3px solid #8eb4ff;
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 1px #8eb4ff,
+    0 0 22px rgba(142, 180, 255, 0.55),
+    0 12px 28px rgba(0, 0, 0, 0.45);
   z-index: 2;
 }
 
 .card--link-related {
-  border: 2px solid #7dd3c0;
-  outline: 2px solid rgba(125, 211, 192, 0.3);
-  outline-offset: 2px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  border: 2px solid #b6f0e2;
+  outline: 3px solid #5fd4b8;
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 1px #5fd4b8,
+    0 0 20px rgba(95, 212, 184, 0.5),
+    0 10px 24px rgba(0, 0, 0, 0.4);
   z-index: 1;
 }
 
 .card--link-related.card--shared-owners {
-  border-color: #8eb4ff;
-  outline-color: rgba(142, 180, 255, 0.35);
+  border-color: #c5dcff;
+  outline-color: #8eb4ff;
+  box-shadow:
+    0 0 0 1px #8eb4ff,
+    0 0 20px rgba(142, 180, 255, 0.5),
+    0 10px 24px rgba(0, 0, 0, 0.4);
 }
 
 .card--link-dim {
@@ -550,6 +626,10 @@
   background: #7dd3c0;
 }
 
+.legend__swatch--subject {
+  background: #e6c07b;
+}
+
 .legend__swatch--prof {
   background: #6aa8ff;
   outline: 1px dashed rgba(106, 168, 255, 0.9);
@@ -557,17 +637,28 @@
 }
 
 .card.match-ideal {
-  border-color: rgba(125, 211, 192, 0.45);
+  border-color: #7dd3c0;
   box-shadow:
-    inset 3px 0 0 #7dd3c0,
+    inset 4px 0 0 #7dd3c0,
+    0 0 0 1px rgba(125, 211, 192, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.card.match-subject {
+  border-color: #e6c07b;
+  box-shadow:
+    inset 4px 0 0 #e6c07b,
+    0 0 0 1px rgba(230, 192, 123, 0.35),
     0 1px 0 rgba(255, 255, 255, 0.04),
     0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 .card.match-professor {
-  border-color: rgba(106, 168, 255, 0.4);
+  border-color: #6aa8ff;
   box-shadow:
-    inset 3px 0 0 #6aa8ff,
+    inset 4px 0 0 #6aa8ff,
+    0 0 0 1px rgba(106, 168, 255, 0.35),
     0 1px 0 rgba(255, 255, 255, 0.04),
     0 8px 18px rgba(0, 0, 0, 0.28);
 }
@@ -688,6 +779,10 @@
 
 .card__match--ideal {
   color: var(--ideal);
+}
+
+.card__match--subject {
+  color: #e6c07b;
 }
 
 .card__match--professor {
@@ -916,7 +1011,7 @@
   }
 
   .board {
-    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    grid-template-columns: 1fr;
   }
 }
 
@@ -927,6 +1022,20 @@
 
   .board {
     grid-template-columns: 1fr;
+  }
+
+  .align-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .board-pair__heads {
+    grid-template-columns: 1fr;
+  }
+
+  .column__head--pair.column--d {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
   }
 
   .column {

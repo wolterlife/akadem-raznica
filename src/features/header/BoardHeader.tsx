@@ -9,6 +9,7 @@ import type {
 interface Stats {
   open: number
   ideal: number
+  subject: number
   professor: number
   done: number
 }
@@ -82,11 +83,15 @@ export function BoardHeader({
           </li>
           <li>
             <span className="legend__swatch legend__swatch--ideal" />
-            Идеал = один предмет · есть у обоих
+            Идеал = предмет + препод
+          </li>
+          <li>
+            <span className="legend__swatch legend__swatch--subject" />
+            Общий предмет = разный препод
           </li>
           <li>
             <span className="legend__swatch legend__swatch--prof" />
-            Общий препод = разные предметы, один ФИО
+            Общий препод = разные предметы
           </li>
         </ul>
         {shared && online.length > 0 && (
@@ -121,11 +126,15 @@ export function BoardHeader({
           </div>
           <div>
             <strong>{stats.ideal}</strong>
-            <span>идеальных</span>
+            <span>идеал</span>
+          </div>
+          <div>
+            <strong>{stats.subject}</strong>
+            <span>общ. предм.</span>
           </div>
           <div>
             <strong>{stats.professor}</strong>
-            <span>общий преп.</span>
+            <span>общ. преп.</span>
           </div>
           <div>
             <strong>{stats.done}</strong>
@@ -148,6 +157,13 @@ export function BoardHeader({
               type="button"
             >
               идеал
+            </button>
+            <button
+              className={matchFilter === 'subject' ? 'chip chip--on' : 'chip'}
+              onClick={() => onMatchFilter('subject')}
+              type="button"
+            >
+              общий предм.
             </button>
             <button
               className={matchFilter === 'professor' ? 'chip chip--on' : 'chip'}

@@ -260,13 +260,13 @@ export const SEED: Assessment[] = [
   },
   {
     id: 'm3',
-    subject: 'Философия',
-    short: 'ФИЛ',
-    professor: 'Лебедева Мария Александровна',
+    subject: 'Культурология',
+    short: 'КУЛЬТ',
+    professor: 'Орлова Анна Сергеевна',
     type: 'diff_credit',
     owners: ['M'],
     column: 'm',
-    note: 'черновик M',
+    note: 'черновик M · тот же предмет, другой препод',
   },
   {
     id: 'm4',
