@@ -13,7 +13,7 @@ export interface Assessment {
   id: string
   subject: string
   short: string
-  /** Кафедра (пока вместо ФИО препода — в листе только кафедра) */
+  /** ФИО преподавателя (пусто — ещё не указан) */
   professor: string
   type: AssessmentType
   owners: Owner[]

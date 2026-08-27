@@ -29,7 +29,7 @@ import {
   type Identity,
   type PresenceUser,
 } from './presence'
-import type { Assessment, ColumnId } from './types'
+import type { Assessment, AssessmentType, ColumnId } from './types'
 import { Card, Column } from './components/BoardParts'
 import { CardForm } from './components/CardForm'
 import { NameGate } from './components/NameGate'
@@ -51,7 +51,14 @@ export default function App() {
   const [editing, setEditing] = useState<Assessment | null>(null)
   const [creating, setCreating] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
-  const [filter, setFilter] = useState<'all' | 'ideal' | 'professor'>('all')
+  const [matchFilter, setMatchFilter] = useState<'all' | 'ideal' | 'professor'>(
+    'all',
+  )
+  const [typeFilter, setTypeFilter] = useState<'all' | 'exam' | 'credits' | AssessmentType>(
+    'all',
+  )
+  const [profFilter, setProfFilter] = useState('all')
+  const [sortKey, setSortKey] = useState<'subject' | 'type' | 'prof'>('subject')
   const readyRef = useRef(!shared)
   const skipPushRef = useRef(false)
   const itemsRef = useRef(items)
@@ -149,13 +156,69 @@ export default function App() {
     [items, activeId],
   )
 
+  const professors = useMemo(() => {
+    const set = new Set<string>()
+    for (const item of items) {
+      const d = item.professor.trim()
+      if (d && d !== '—' && d !== '-') set.add(d)
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, 'ru'))
+  }, [items])
+
   const visible = useMemo(() => {
-    if (filter === 'all') return items
-    return items.filter((item) => {
-      if (item.column === 'done') return true
-      return getMatchKind(item, items) === filter
+    const filtered = items.filter((item) => {
+      if (matchFilter !== 'all') {
+        if (item.column === 'done') return true
+        if (getMatchKind(item, items) !== matchFilter) return false
+      }
+
+      if (typeFilter !== 'all') {
+        if (typeFilter === 'exam' && item.type !== 'exam') return false
+        if (
+          typeFilter === 'credits' &&
+          item.type !== 'credit' &&
+          item.type !== 'diff_credit'
+        ) {
+          return false
+        }
+        if (
+          typeFilter !== 'exam' &&
+          typeFilter !== 'credits' &&
+          item.type !== typeFilter
+        ) {
+          return false
+        }
+      }
+
+      if (profFilter !== 'all' && item.professor.trim() !== profFilter) {
+        return false
+      }
+
+      return true
     })
-  }, [items, filter])
+
+    const typeOrder: AssessmentType[] = [
+      'exam',
+      'diff_credit',
+      'credit',
+      'course_project',
+      'coursework',
+      'practice',
+    ]
+
+    return [...filtered].sort((a, b) => {
+      if (sortKey === 'type') {
+        const diff =
+          typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type)
+        if (diff !== 0) return diff
+      }
+      if (sortKey === 'prof') {
+        const diff = a.professor.localeCompare(b.professor, 'ru')
+        if (diff !== 0) return diff
+      }
+      return a.subject.localeCompare(b.subject, 'ru')
+    })
+  }, [items, matchFilter, typeFilter, profFilter, sortKey])
 
   const byColumn = useCallback(
     (column: ColumnId) => visible.filter((i) => i.column === column),
@@ -254,8 +317,8 @@ export default function App() {
           <p className="brand__mark">академ-разница</p>
           <h1>Канбан сдач</h1>
           <p className="brand__lead">
-            D и M закрывают разницу. Ищем пересечения: один предмет и одна
-            кафедра — лучше сдавать вместе.
+            D и M закрывают разницу. Ищем пересечения: один предмет и один
+            преподаватель — лучше сдавать вместе.
           </p>
           <p className={`sync-badge sync-badge--${syncStatus}`}>{statusLabel}</p>
           {shared && online.length > 0 && (
@@ -292,7 +355,7 @@ export default function App() {
             </div>
             <div>
               <strong>{stats.professor}</strong>
-              <span>общая каф.</span>
+              <span>общий преп.</span>
             </div>
             <div>
               <strong>{stats.done}</strong>
@@ -303,27 +366,76 @@ export default function App() {
           <div className="toolbar">
             <div className="filters" role="group" aria-label="Фильтр совпадений">
               <button
-                className={filter === 'all' ? 'chip chip--on' : 'chip'}
-                onClick={() => setFilter('all')}
+                className={matchFilter === 'all' ? 'chip chip--on' : 'chip'}
+                onClick={() => setMatchFilter('all')}
                 type="button"
               >
                 все
               </button>
               <button
-                className={filter === 'ideal' ? 'chip chip--on' : 'chip'}
-                onClick={() => setFilter('ideal')}
+                className={matchFilter === 'ideal' ? 'chip chip--on' : 'chip'}
+                onClick={() => setMatchFilter('ideal')}
                 type="button"
               >
                 идеал
               </button>
               <button
-                className={filter === 'professor' ? 'chip chip--on' : 'chip'}
-                onClick={() => setFilter('professor')}
+                className={matchFilter === 'professor' ? 'chip chip--on' : 'chip'}
+                onClick={() => setMatchFilter('professor')}
                 type="button"
               >
-                общая каф.
+                общий преп.
               </button>
             </div>
+
+            <label className="filter-select">
+              <span>тип</span>
+              <select
+                value={typeFilter}
+                onChange={(e) =>
+                  setTypeFilter(e.target.value as typeof typeFilter)
+                }
+              >
+                <option value="all">все типы</option>
+                <option value="exam">экзамен</option>
+                <option value="credits">зачёты</option>
+                <option value="credit">зачёт</option>
+                <option value="diff_credit">дифф.зачёт</option>
+                <option value="course_project">курс.пр.</option>
+                <option value="coursework">курс.раб.</option>
+                <option value="practice">практика</option>
+              </select>
+            </label>
+
+            <label className="filter-select">
+              <span>препод</span>
+              <select
+                value={profFilter}
+                onChange={(e) => setProfFilter(e.target.value)}
+              >
+                <option value="all">все преподы</option>
+                {professors.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="filter-select">
+              <span>сорт.</span>
+              <select
+                value={sortKey}
+                onChange={(e) =>
+                  setSortKey(e.target.value as typeof sortKey)
+                }
+              >
+                <option value="subject">по предмету</option>
+                <option value="type">по типу</option>
+                <option value="prof">по преподу</option>
+              </select>
+            </label>
+
             <button className="btn btn--ghost" type="button" onClick={resetDemo}>
               демо
             </button>

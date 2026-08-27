@@ -69,7 +69,7 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
 
   function submit(e: FormEvent) {
     e.preventDefault()
-    if (!form.subject.trim() || !form.professor.trim()) return
+    if (!form.subject.trim()) return
 
     const short =
       form.short.trim() ||
@@ -141,12 +141,11 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
         </label>
 
         <label>
-          Кафедра
+          Преподаватель
           <input
             value={form.professor}
             onChange={(e) => setForm({ ...form, professor: e.target.value })}
-            required
-            placeholder="ИСиТ"
+            placeholder="Иванова Е.П."
           />
         </label>
 

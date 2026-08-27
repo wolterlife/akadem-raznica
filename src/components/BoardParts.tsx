@@ -76,13 +76,15 @@ export function Card({ item, match, onEdit, editors = [] }: CardProps) {
       </header>
 
       <h3 className="card__subject">{item.subject}</h3>
-      <p className="card__prof">{item.professor}</p>
+      <p className="card__prof">
+        {item.professor.trim() || 'препод не указан'}
+      </p>
 
       {match !== 'none' && (
         <p className={`card__match card__match--${match}`}>
           {match === 'ideal'
-            ? 'общий предмет и кафедра'
-            : 'общая кафедра'}
+            ? 'общий предмет (+ препод)'
+            : 'общий преподаватель'}
         </p>
       )}
 
