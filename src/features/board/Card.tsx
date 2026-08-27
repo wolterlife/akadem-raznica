@@ -1,9 +1,9 @@
-import type { ReactNode, MouseEvent, PointerEvent } from 'react'
-import { useDraggable, useDroppable } from '@dnd-kit/core'
-import type { Assessment, MatchKind } from '../types'
-import { TYPE_LABEL } from '../types'
-import type { PresenceUser } from '../presence'
-import type { LinkReason } from '../sync'
+import type { MouseEvent, PointerEvent } from 'react'
+import { useDraggable } from '@dnd-kit/core'
+import type { Assessment, MatchKind } from '../../types'
+import { TYPE_LABEL } from '../../types'
+import type { PresenceUser } from '../../presence'
+import type { LinkReason } from '../../sync'
 
 interface CardProps {
   item: Assessment
@@ -130,33 +130,5 @@ export function Card({
         ))}
       </footer>
     </article>
-  )
-}
-
-interface ColumnProps {
-  id: string
-  title: string
-  subtitle: string
-  children: ReactNode
-  count: number
-}
-
-export function Column({ id, title, subtitle, children, count }: ColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({ id })
-
-  return (
-    <section
-      ref={setNodeRef}
-      className={`column column--${id} ${isOver ? 'column--over' : ''}`}
-    >
-      <header className="column__head">
-        <div>
-          <h2 className="column__title">{title}</h2>
-          <p className="column__sub">{subtitle}</p>
-        </div>
-        <span className="column__count">{count}</span>
-      </header>
-      <div className="column__list">{children}</div>
-    </section>
   )
 }

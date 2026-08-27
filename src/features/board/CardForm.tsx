@@ -1,7 +1,7 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent } from 'react'
-import type { Assessment, AssessmentType, Owner } from '../types'
-import { TYPE_LABEL } from '../types'
-import { uid } from '../sync'
+﻿import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent } from 'react'
+import type { Assessment, AssessmentType, Owner } from '../../types'
+import { TYPE_LABEL } from '../../types'
+import { uid } from '../../sync'
 
 interface FormProps {
   initial?: Assessment | null
@@ -116,41 +116,41 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
         onSubmit={submit}
         aria-labelledby={titleId}
       >
-        <h2 id={titleId}>{initial ? 'Редактировать' : 'Новая карточка'}</h2>
-        <p className="modal__hint">1 позиция из листа = 1 карточка</p>
+        <h2 id={titleId}>{initial ? 'Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ' : 'РќРѕРІР°СЏ РєР°СЂС‚РѕС‡РєР°'}</h2>
+        <p className="modal__hint">1 РїРѕР·РёС†РёСЏ РёР· Р»РёСЃС‚Р° = 1 РєР°СЂС‚РѕС‡РєР°</p>
 
         <label>
-          Предмет
+          РџСЂРµРґРјРµС‚
           <input
             value={form.subject}
             onChange={(e) => setForm({ ...form, subject: e.target.value })}
             required
             autoFocus
-            placeholder="Математический анализ"
+            placeholder="РњР°С‚РµРјР°С‚РёС‡РµСЃРєРёР№ Р°РЅР°Р»РёР·"
           />
         </label>
 
         <label>
-          Код
+          РљРѕРґ
           <input
             value={form.short}
             onChange={(e) => setForm({ ...form, short: e.target.value })}
-            placeholder="МАТАН"
+            placeholder="РњРђРўРђРќ"
             maxLength={6}
           />
         </label>
 
         <label>
-          Преподаватель
+          РџСЂРµРїРѕРґР°РІР°С‚РµР»СЊ
           <input
             value={form.professor}
             onChange={(e) => setForm({ ...form, professor: e.target.value })}
-            placeholder="Иванова Е.П."
+            placeholder="РРІР°РЅРѕРІР° Р•.Рџ."
           />
         </label>
 
         <label>
-          Тип
+          РўРёРї
           <select
             value={form.type}
             onChange={(e) =>
@@ -166,7 +166,7 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
         </label>
 
         <fieldset>
-          <legend>Кому нужно</legend>
+          <legend>РљРѕРјСѓ РЅСѓР¶РЅРѕ</legend>
           <label className="check">
             <input
               type="checkbox"
@@ -186,11 +186,11 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
         </fieldset>
 
         <label>
-          Заметка
+          Р—Р°РјРµС‚РєР°
           <input
             value={form.note}
             onChange={(e) => setForm({ ...form, note: e.target.value })}
-            placeholder="опционально"
+            placeholder="РѕРїС†РёРѕРЅР°Р»СЊРЅРѕ"
           />
         </label>
 
@@ -201,17 +201,18 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
               className="btn btn--danger"
               onClick={() => onDelete(initial.id)}
             >
-              Удалить
+              РЈРґР°Р»РёС‚СЊ
             </button>
           )}
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Отмена
+            РћС‚РјРµРЅР°
           </button>
           <button type="submit" className="btn btn--primary">
-            Сохранить
+            РЎРѕС…СЂР°РЅРёС‚СЊ
           </button>
         </div>
       </form>
     </div>
   )
 }
+
