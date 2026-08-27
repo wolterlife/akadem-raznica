@@ -3,7 +3,7 @@ import type { Assessment, ColumnDef } from './types'
 export const COLUMNS: ColumnDef[] = [
   { id: 'd', title: 'D', subtitle: 'Бобрик Д.В. · ЗИт-3в' },
   { id: 'm', title: 'M', subtitle: 'примерно · лист ещё нет' },
-  { id: 'shared', title: 'Общие', subtitle: 'скорее сдавать вместе' },
+  { id: 'shared', title: 'Общие', subtitle: 'одна карточка · нужно обоим' },
   { id: 'done', title: 'Done', subtitle: 'закрыто' },
 ]
 

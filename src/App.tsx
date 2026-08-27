@@ -14,7 +14,7 @@ import {
   PULL_INTERVAL_MS,
   boardsEqual,
   getMatchKind,
-  getRelatedIds,
+  getRelatedLinks,
   isSyncConfigured,
   linkGroupKey,
   loadLocal,
@@ -64,6 +64,22 @@ export default function App() {
     'links',
   )
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const hoverClearRef = useRef<number | null>(null)
+
+  function onCardHover(id: string | null) {
+    if (hoverClearRef.current != null) {
+      window.clearTimeout(hoverClearRef.current)
+      hoverClearRef.current = null
+    }
+    if (id) {
+      setHoveredId(id)
+      return
+    }
+    hoverClearRef.current = window.setTimeout(() => {
+      setHoveredId(null)
+      hoverClearRef.current = null
+    }, 120)
+  }
   const readyRef = useRef(!shared)
   const skipPushRef = useRef(false)
   const itemsRef = useRef(items)
@@ -229,25 +245,16 @@ export default function App() {
     })
   }, [items, matchFilter, typeFilter, profFilter, sortKey])
 
-  const relatedIds = useMemo(() => {
+  const relatedLinks = useMemo(() => {
     if (!hoveredId) return null
     const card = items.find((i) => i.id === hoveredId)
     if (!card) return null
-    return getRelatedIds(card, items)
+    return getRelatedLinks(card, items)
   }, [hoveredId, items])
 
   const byColumn = useCallback(
-    (column: ColumnId) => {
-      const list = visible.filter((i) => i.column === column)
-      if (!relatedIds) return list
-      return [...list].sort((a, b) => {
-        const ar = relatedIds.has(a.id) ? 0 : 1
-        const br = relatedIds.has(b.id) ? 0 : 1
-        if (ar !== br) return ar - br
-        return 0
-      })
-    },
-    [visible, relatedIds],
+    (column: ColumnId) => visible.filter((i) => i.column === column),
+    [visible],
   )
 
   function onDragStart(event: DragStartEvent) {
@@ -342,10 +349,24 @@ export default function App() {
           <p className="brand__mark">академ-разница</p>
           <h1>Канбан сдач</h1>
           <p className="brand__lead">
-            D и M закрывают разницу. Ищем пересечения: один предмет и один
-            преподаватель — лучше сдавать вместе.
+            D и M закрывают разницу. Колонка «Общие» — одна карточка на двоих.
+            Ховер подсветит тот же предмет или того же препода.
           </p>
           <p className={`sync-badge sync-badge--${syncStatus}`}>{statusLabel}</p>
+          <ul className="legend" aria-label="Как читать доску">
+            <li>
+              <span className="legend__swatch legend__swatch--shared" />
+              Общие = нужно D и M
+            </li>
+            <li>
+              <span className="legend__swatch legend__swatch--ideal" />
+              Идеал = один предмет у обоих
+            </li>
+            <li>
+              <span className="legend__swatch legend__swatch--prof" />
+              Общий препод = разные предметы, один ФИО
+            </li>
+          </ul>
           {shared && online.length > 0 && (
             <div className="online" aria-label="Кто онлайн">
               {online.map((u) => (
@@ -526,15 +547,16 @@ export default function App() {
                   }
                   editors={editorsByCard.get(item.id)}
                   linkState={
-                    !relatedIds
+                    !relatedLinks
                       ? 'idle'
                       : item.id === hoveredId
                         ? 'focus'
-                        : relatedIds.has(item.id)
+                        : relatedLinks.has(item.id)
                           ? 'related'
                           : 'dim'
                   }
-                  onHoverChange={setHoveredId}
+                  linkReasons={relatedLinks?.get(item.id) ?? []}
+                  onHoverChange={onCardHover}
                   onEdit={setEditing}
                 />
               ))}
@@ -554,9 +576,8 @@ export default function App() {
       </DndContext>
 
       <p className="hint">
-        Ховер по карточке подсветит связи (предмет / препод) и поднимет их в
-        колонке
-        {shared ? ' · синк 15с · ✎ на карточке видны другим' : ''}
+        Ховер: без прыжков списка · подсветка + подпись «связь: …»
+        {shared ? ' · синк 15с' : ''}
       </p>
 
       {(creating || editing) && (

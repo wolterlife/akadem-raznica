@@ -3,6 +3,7 @@ import { useDraggable, useDroppable } from '@dnd-kit/core'
 import type { Assessment, MatchKind } from '../types'
 import { TYPE_LABEL } from '../types'
 import type { PresenceUser } from '../presence'
+import type { LinkReason } from '../sync'
 
 interface CardProps {
   item: Assessment
@@ -10,7 +11,17 @@ interface CardProps {
   onEdit: (item: Assessment) => void
   editors?: PresenceUser[]
   linkState?: 'idle' | 'focus' | 'related' | 'dim'
+  linkReasons?: LinkReason[]
   onHoverChange?: (id: string | null) => void
+}
+
+function reasonLabel(reasons: LinkReason[]) {
+  const hasSubj = reasons.includes('subject')
+  const hasProf = reasons.includes('professor')
+  if (hasSubj && hasProf) return 'связь: предмет + препод'
+  if (hasSubj) return 'связь: тот же предмет'
+  if (hasProf) return 'связь: тот же препод'
+  return null
 }
 
 export function Card({
@@ -19,6 +30,7 @@ export function Card({
   onEdit,
   editors = [],
   linkState = 'idle',
+  linkReasons = [],
   onHoverChange,
 }: CardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
@@ -34,11 +46,14 @@ export function Card({
     e.stopPropagation()
   }
 
+  const hoverLink = reasonLabel(linkReasons)
+  const both = item.owners.includes('D') && item.owners.includes('M')
+
   return (
     <article
       ref={setNodeRef}
       style={style}
-      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} match-${match} card--link-${linkState}`}
+      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} ${both ? 'card--shared-owners' : ''} match-${match} card--link-${linkState}`}
       {...listeners}
       {...attributes}
       onMouseEnter={() => onHoverChange?.(item.id)}
@@ -91,12 +106,18 @@ export function Card({
         {item.professor.trim() || 'препод не указан'}
       </p>
 
-      {match !== 'none' && (
-        <p className={`card__match card__match--${match}`}>
-          {match === 'ideal'
-            ? 'общий предмет (+ препод)'
-            : 'общий преподаватель'}
-        </p>
+      {both && <p className="card__match card__match--shared">нужно D и M</p>}
+      {!both && match === 'professor' && (
+        <p className="card__match card__match--professor">общий преподаватель</p>
+      )}
+      {!both && match === 'ideal' && (
+        <p className="card__match card__match--ideal">тот же предмет у обоих</p>
+      )}
+      {hoverLink && linkState === 'related' && (
+        <p className="card__match card__match--hover">{hoverLink}</p>
+      )}
+      {linkState === 'focus' && (
+        <p className="card__match card__match--hover">смотри связанные</p>
       )}
 
       {item.note && <p className="card__note">{item.note}</p>}

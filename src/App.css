@@ -498,8 +498,59 @@
 }
 
 .card--link-dim {
-  opacity: 0.28;
-  filter: grayscale(0.35);
+  opacity: 0.22;
+  filter: grayscale(0.4);
+  pointer-events: none;
+}
+
+.card--shared-owners {
+  border-color: rgba(142, 180, 255, 0.28);
+}
+
+.card__match--shared {
+  color: #a8c9ff;
+}
+
+.card__match--hover {
+  color: #ffd28a;
+}
+
+.legend {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legend__swatch--shared {
+  background: #8eb4ff;
+}
+
+.legend__swatch--ideal {
+  background: #7dd3c0;
+}
+
+.legend__swatch--prof {
+  background: #6aa8ff;
+  outline: 1px dashed rgba(106, 168, 255, 0.9);
+  outline-offset: 1px;
 }
 
 .card.match-ideal {

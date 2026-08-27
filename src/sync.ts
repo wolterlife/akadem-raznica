@@ -119,21 +119,27 @@ export function linkGroupKey(card: Assessment): string {
   return `s:${normalize(card.subject)}`
 }
 
-export function areCardsLinked(a: Assessment, b: Assessment): boolean {
-  if (a.id === b.id) return true
-  if (normalize(a.subject) === normalize(b.subject)) return true
-  const pa = profKey(a.professor)
-  const pb = profKey(b.professor)
-  if (pa && pb && pa === pb) return true
-  return false
-}
+export type LinkReason = 'subject' | 'professor'
 
-export function getRelatedIds(card: Assessment, all: Assessment[]): Set<string> {
-  const ids = new Set<string>([card.id])
+export function getRelatedLinks(
+  card: Assessment,
+  all: Assessment[],
+): Map<string, LinkReason[]> {
+  const map = new Map<string, LinkReason[]>()
+  map.set(card.id, [])
+
+  const subj = normalize(card.subject)
+  const prof = profKey(card.professor)
+
   for (const other of all) {
-    if (areCardsLinked(card, other)) ids.add(other.id)
+    if (other.id === card.id) continue
+    const reasons: LinkReason[] = []
+    if (normalize(other.subject) === subj) reasons.push('subject')
+    const otherProf = profKey(other.professor)
+    if (prof && otherProf && prof === otherProf) reasons.push('professor')
+    if (reasons.length) map.set(other.id, reasons)
   }
-  return ids
+  return map
 }
 
 function normalize(value: string) {
