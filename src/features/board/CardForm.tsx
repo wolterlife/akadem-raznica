@@ -93,12 +93,13 @@ export function CardForm({
 
     const owners = [...form.owners].sort() as Owner[]
     const column =
-      initial?.column ??
-      (owners.includes('D') && owners.includes('M')
-        ? 'shared'
-        : owners[0] === 'D'
-          ? 'd'
-          : 'm')
+      initial?.column === 'done'
+        ? 'done'
+        : initial?.column === 'd' || initial?.column === 'm'
+          ? initial.column
+          : owners.includes('D')
+            ? 'd'
+            : 'm'
 
     onSave({
       id: initial?.id ?? uid(),
@@ -107,7 +108,7 @@ export function CardForm({
       professor: form.professor.trim(),
       type: form.type,
       owners,
-      column: initial?.column === 'done' ? 'done' : column,
+      column,
       note: form.note.trim() || undefined,
     })
   }

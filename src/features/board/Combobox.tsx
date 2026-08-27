@@ -22,7 +22,7 @@ export function Combobox({
   onChange,
 }: Props) {
   const listId = useId()
-  const rootRef = useRef<HTMLLabelElement>(null)
+  const rootRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState(value)
 
@@ -31,12 +31,27 @@ export function Combobox({
   }, [value])
 
   useEffect(() => {
-    function onDoc(e: MouseEvent) {
+    if (!open) return
+
+    function onPointerDown(e: PointerEvent) {
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [])
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return
+      e.preventDefault()
+      e.stopPropagation()
+      setOpen(false)
+    }
+
+    // capture: modal stops bubbling mousedown, so bubble-phase never fires
+    document.addEventListener('pointerdown', onPointerDown, true)
+    document.addEventListener('keydown', onKey, true)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, true)
+      document.removeEventListener('keydown', onKey, true)
+    }
+  }, [open])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -49,8 +64,8 @@ export function Combobox({
   const exact = options.some(
     (o) => o.toLowerCase() === query.trim().toLowerCase(),
   )
-  const showCreate =
-    allowCreate && query.trim().length > 0 && !exact
+  const showCreate = allowCreate && query.trim().length > 0 && !exact
+  const showList = open && (filtered.length > 0 || showCreate)
 
   function pick(next: string) {
     onChange(next)
@@ -59,33 +74,34 @@ export function Combobox({
   }
 
   return (
-    <label className="combo" ref={rootRef}>
-      {label}
-      <input
-        value={query}
-        required={required}
-        autoFocus={autoFocus}
-        placeholder={placeholder}
-        role="combobox"
-        aria-expanded={open}
-        aria-controls={listId}
-        aria-autocomplete="list"
-        autoComplete="off"
-        onFocus={() => setOpen(true)}
-        onChange={(e) => {
-          setQuery(e.target.value)
-          onChange(e.target.value)
-          setOpen(true)
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') setOpen(false)
-          if (e.key === 'Enter' && open && filtered[0]) {
-            e.preventDefault()
-            pick(filtered[0])
-          }
-        }}
-      />
-      {open && (filtered.length > 0 || showCreate) && (
+    <div className="combo" ref={rootRef}>
+      <label className="combo__label">
+        {label}
+        <input
+          value={query}
+          required={required}
+          autoFocus={autoFocus}
+          placeholder={placeholder}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          autoComplete="off"
+          onFocus={() => setOpen(true)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            onChange(e.target.value)
+            setOpen(true)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && open && filtered[0]) {
+              e.preventDefault()
+              pick(filtered[0])
+            }
+          }}
+        />
+      </label>
+      {showList && (
         <ul id={listId} className="combo__list" role="listbox">
           {filtered.map((opt) => (
             <li key={opt}>
@@ -114,6 +130,6 @@ export function Combobox({
           )}
         </ul>
       )}
-    </label>
+    </div>
   )
 }

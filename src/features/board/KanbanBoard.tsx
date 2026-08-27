@@ -27,6 +27,11 @@ interface Props {
   onMove: (id: string, column: ColumnId) => void
 }
 
+function parseCardId(dragId: string) {
+  const sep = dragId.indexOf('::')
+  return sep >= 0 ? dragId.slice(0, sep) : dragId
+}
+
 export function KanbanBoard({
   items,
   visible,
@@ -41,10 +46,10 @@ export function KanbanBoard({
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   )
 
-  const activeItem = useMemo(
-    () => items.find((i) => i.id === activeId) ?? null,
-    [items, activeId],
-  )
+  const activeItem = useMemo(() => {
+    if (!activeId) return null
+    return items.find((i) => i.id === parseCardId(activeId)) ?? null
+  }, [items, activeId])
 
   const relatedLinks = useMemo(() => {
     if (!hoveredId) return null
@@ -76,12 +81,22 @@ export function KanbanBoard({
     if (columnIds.includes(overId as ColumnId)) {
       targetColumn = overId as ColumnId
     } else {
-      const overCard = items.find((i) => i.id === overId)
-      if (overCard) targetColumn = overCard.column
+      const overCard = items.find((i) => i.id === parseCardId(overId))
+      if (overCard) {
+        // Drop onto a card that may be mirrored in D/M — prefer column from drag id
+        const sep = overId.indexOf('::')
+        if (sep >= 0) {
+          const col = overId.slice(sep + 2) as ColumnId
+          if (columnIds.includes(col)) targetColumn = col
+          else targetColumn = overCard.column
+        } else {
+          targetColumn = overCard.column
+        }
+      }
     }
 
     if (!targetColumn) return
-    onMove(String(active.id), targetColumn)
+    onMove(parseCardId(String(active.id)), targetColumn)
   }
 
   return (
@@ -102,23 +117,30 @@ export function KanbanBoard({
               subtitle={col.subtitle}
               count={colItems.length}
             >
-              {colItems.map((item) => (
-                <Card
-                  key={item.id}
-                  item={item}
-                  match={
-                    item.column === 'done' ? 'none' : getMatchKind(item, items)
-                  }
-                  editors={editorsByCard.get(item.id)}
-                  linkState={linkStateFor(item.id)}
-                  linkReasons={
-                    (relatedLinks?.get(item.id) as LinkReason[] | undefined) ??
-                    []
-                  }
-                  onHoverChange={onHoverChange}
-                  onEdit={onEdit}
-                />
-              ))}
+              {colItems.map((item) => {
+                const both =
+                  item.owners.includes('D') && item.owners.includes('M')
+                const dragId =
+                  both && col.id !== 'done' ? `${item.id}::${col.id}` : item.id
+                return (
+                  <Card
+                    key={dragId}
+                    dragId={dragId}
+                    item={item}
+                    match={
+                      item.column === 'done' ? 'none' : getMatchKind(item, items)
+                    }
+                    editors={editorsByCard.get(item.id)}
+                    linkState={linkStateFor(item.id)}
+                    linkReasons={
+                      (relatedLinks?.get(item.id) as LinkReason[] | undefined) ??
+                      []
+                    }
+                    onHoverChange={onHoverChange}
+                    onEdit={onEdit}
+                  />
+                )
+              })}
             </Column>
           )
         })}

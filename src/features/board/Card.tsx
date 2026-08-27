@@ -13,6 +13,8 @@ interface CardProps {
   linkState?: 'idle' | 'focus' | 'related' | 'dim'
   linkReasons?: LinkReason[]
   onHoverChange?: (id: string | null) => void
+  /** Unique dnd id when the same card is shown in two columns */
+  dragId?: string
 }
 
 function reasonLabel(reasons: LinkReason[]) {
@@ -34,9 +36,10 @@ export function Card({
   linkState = 'idle',
   linkReasons = [],
   onHoverChange,
+  dragId,
 }: CardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: item.id })
+    useDraggable({ id: dragId ?? item.id })
 
   const style = transform
     ? {

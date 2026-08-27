@@ -3,7 +3,6 @@ import type { Assessment, ColumnDef } from './types'
 export const COLUMNS: ColumnDef[] = [
   { id: 'd', title: 'D', subtitle: 'Бобрик Д.В. · ЗИт-3в' },
   { id: 'm', title: 'M', subtitle: 'примерно · лист ещё нет' },
-  { id: 'shared', title: 'Общие', subtitle: 'одна карточка · нужно обоим' },
   { id: 'done', title: 'Done', subtitle: 'закрыто' },
 ]
 
@@ -17,7 +16,7 @@ export const SEED: Assessment[] = [
     professor: 'Смирнова Елена Петровна',
     type: 'credit',
     owners: ['D', 'M'],
-    column: 'shared',
+    column: 'd',
   },
   {
     id: 's2',
@@ -26,7 +25,7 @@ export const SEED: Assessment[] = [
     professor: 'Ковалёв Андрей Сергеевич',
     type: 'exam',
     owners: ['D', 'M'],
-    column: 'shared',
+    column: 'd',
   },
   {
     id: 's3',
@@ -35,7 +34,7 @@ export const SEED: Assessment[] = [
     professor: 'Петрова Наталья Ивановна',
     type: 'exam',
     owners: ['D', 'M'],
-    column: 'shared',
+    column: 'd',
   },
   {
     id: 's4',
@@ -44,7 +43,7 @@ export const SEED: Assessment[] = [
     professor: 'Васильева Ольга Дмитриевна',
     type: 'course_project',
     owners: ['D', 'M'],
-    column: 'shared',
+    column: 'd',
   },
   {
     id: 's5',
@@ -53,7 +52,7 @@ export const SEED: Assessment[] = [
     professor: 'Морозов Иван Алексеевич',
     type: 'coursework',
     owners: ['D', 'M'],
-    column: 'shared',
+    column: 'd',
   },
   {
     id: 's6',
@@ -62,7 +61,7 @@ export const SEED: Assessment[] = [
     professor: 'Ковалёв Андрей Сергеевич',
     type: 'credit',
     owners: ['D', 'M'],
-    column: 'shared',
+    column: 'd',
     note: 'у D — заяв',
   },
   {
@@ -72,7 +71,7 @@ export const SEED: Assessment[] = [
     professor: 'Новиков Павел Викторович',
     type: 'exam',
     owners: ['D', 'M'],
-    column: 'shared',
+    column: 'd',
     note: 'у D — заяв',
   },
   {
@@ -82,7 +81,7 @@ export const SEED: Assessment[] = [
     professor: 'Морозов Иван Алексеевич',
     type: 'exam',
     owners: ['D', 'M'],
-    column: 'shared',
+    column: 'd',
   },
 
   // —— только D ——

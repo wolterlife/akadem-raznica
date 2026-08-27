@@ -6,7 +6,7 @@ export type AssessmentType =
   | 'coursework'
   | 'course_project'
   | 'practice'
-export type ColumnId = 'd' | 'm' | 'shared' | 'done'
+export type ColumnId = 'd' | 'm' | 'done'
 export type MatchKind = 'ideal' | 'professor' | 'none'
 
 export interface Assessment {

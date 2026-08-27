@@ -69,7 +69,7 @@ export function BoardHeader({
         <p className="brand__mark">академ-разница</p>
         <h1>Канбан сдач</h1>
         <p className="brand__lead">
-          D и M закрывают разницу. Колонка «Общие» — одна карточка на двоих.
+          D и M закрывают разницу. Карточка с галочками D+M нужна обоим.
           Ховер подсветит тот же предмет или того же препода.
         </p>
         <p className={`sync-badge sync-badge--${syncStatus}`}>
@@ -78,7 +78,7 @@ export function BoardHeader({
         <ul className="legend" aria-label="Как читать доску">
           <li>
             <span className="legend__swatch legend__swatch--shared" />
-            Общие = нужно D и M
+            D+M = нужно обоим
           </li>
           <li>
             <span className="legend__swatch legend__swatch--ideal" />
@@ -196,7 +196,7 @@ export function BoardHeader({
               value={sortKey}
               onChange={(e) => onSortKey(e.target.value as SortKey)}
             >
-              <option value="links">по связям</option>
+              <option value="links">сначала связи</option>
               <option value="subject">по предмету</option>
               <option value="type">по типу</option>
               <option value="prof">по преподу</option>

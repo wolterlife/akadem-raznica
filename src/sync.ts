@@ -15,14 +15,25 @@ interface BoardPayload {
 
 function parseBoard(val: unknown): Assessment[] | null {
   if (val == null) return null
-  if (Array.isArray(val)) return val as Assessment[]
-  if (
+  let items: Assessment[] | null = null
+  if (Array.isArray(val)) items = val as Assessment[]
+  else if (
     typeof val === 'object' &&
     Array.isArray((val as BoardPayload).items)
   ) {
-    return (val as BoardPayload).items
+    items = (val as BoardPayload).items
   }
-  return null
+  return items ? normalizeBoard(items) : null
+}
+
+/** Legacy column `shared` → personal column (keep D+M owners). */
+export function normalizeBoard(items: Assessment[]): Assessment[] {
+  return items.map((item) => {
+    if ((item.column as string) === 'shared') {
+      return { ...item, column: 'd' }
+    }
+    return item
+  })
 }
 
 export function loadLocal(fallback: Assessment[]): Assessment[] {
@@ -30,7 +41,7 @@ export function loadLocal(fallback: Assessment[]): Assessment[] {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return fallback
     const parsed = JSON.parse(raw) as Assessment[]
-    return Array.isArray(parsed) ? parsed : fallback
+    return Array.isArray(parsed) ? normalizeBoard(parsed) : fallback
   } catch {
     return fallback
   }

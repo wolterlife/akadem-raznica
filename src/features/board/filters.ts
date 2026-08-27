@@ -76,10 +76,20 @@ export function filterAndSortItems(
     return true
   })
 
+  const matchRank = (item: Assessment) => {
+    if (item.column === 'done') return 3
+    const kind = getMatchKind(item, items)
+    if (kind === 'ideal') return 0
+    if (kind === 'professor') return 1
+    return 2
+  }
+
   return [...filtered].sort((a, b) => {
     if (sortKey === 'links') {
-      const diff = linkGroupKey(a).localeCompare(linkGroupKey(b), 'ru')
-      if (diff !== 0) return diff
+      const byMatch = matchRank(a) - matchRank(b)
+      if (byMatch !== 0) return byMatch
+      const byGroup = linkGroupKey(a).localeCompare(linkGroupKey(b), 'ru')
+      if (byGroup !== 0) return byGroup
     }
     if (sortKey === 'type') {
       const diff = TYPE_ORDER.indexOf(a.type) - TYPE_ORDER.indexOf(b.type)
@@ -97,7 +107,16 @@ export function itemsByColumn(
   items: Assessment[],
   column: ColumnId,
 ): Assessment[] {
-  return items.filter((i) => i.column === column)
+  if (column === 'done') {
+    return items.filter((i) => i.column === 'done')
+  }
+  return items.filter((i) => {
+    if (i.column === 'done') return false
+    const both = i.owners.includes('D') && i.owners.includes('M')
+    // D+M без колонки «Общие» — показываем у обоих
+    if (both) return true
+    return i.column === column
+  })
 }
 
 export function computeStats(items: Assessment[]) {
