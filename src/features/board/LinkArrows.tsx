@@ -29,8 +29,8 @@ function edgePoint(
 
   const absDx = Math.abs(dx)
   const absDy = Math.abs(dy)
-  const hw = rect.width / 2
-  const hh = rect.height / 2
+  const hw = rect.width / 2 - 2
+  const hh = rect.height / 2 - 2
 
   if (absDx / hw > absDy / hh) {
     const sx = dx > 0 ? 1 : -1
@@ -38,6 +38,62 @@ function edgePoint(
   }
   const sy = dy > 0 ? 1 : -1
   return { x: cx + (dx / absDy) * hh, y: cy + sy * hh }
+}
+
+function arrowHead(x1: number, y1: number, x2: number, y2: number) {
+  const angle = Math.atan2(y2 - y1, x2 - x1)
+  const size = 9
+  const left = {
+    x: x2 - size * Math.cos(angle - Math.PI / 6),
+    y: y2 - size * Math.sin(angle - Math.PI / 6),
+  }
+  const right = {
+    x: x2 - size * Math.cos(angle + Math.PI / 6),
+    y: y2 - size * Math.sin(angle + Math.PI / 6),
+  }
+  return `M ${x2} ${y2} L ${left.x} ${left.y} L ${right.x} ${right.y} Z`
+}
+
+function pickBestPair(
+  sources: HTMLElement[],
+  targets: HTMLElement[],
+  boardRect: DOMRect,
+  preferCross: boolean,
+): Line | null {
+  let best: Line | null = null
+  let bestDist = Infinity
+
+  for (const s of sources) {
+    const sr = s.getBoundingClientRect()
+    const scx = sr.left + sr.width / 2 - boardRect.left
+    const scy = sr.top + sr.height / 2 - boardRect.top
+    const sCol = s.dataset.col
+
+    for (const t of targets) {
+      if (s === t) continue
+      const tCol = t.dataset.col
+      const cross = Boolean(sCol && tCol && sCol !== tCol)
+      if (preferCross && !cross) continue
+
+      const tr = t.getBoundingClientRect()
+      const tcx = tr.left + tr.width / 2 - boardRect.left
+      const tcy = tr.top + tr.height / 2 - boardRect.top
+      const dist = (scx - tcx) ** 2 + (scy - tcy) ** 2
+      if (dist >= bestDist) continue
+
+      const from = edgePoint(sr, tcx, tcy, boardRect)
+      const to = edgePoint(tr, scx, scy, boardRect)
+      bestDist = dist
+      best = {
+        key: `${sCol ?? 'x'}-${tCol ?? 'y'}-${Math.round(from.x)}-${Math.round(to.y)}`,
+        x1: from.x,
+        y1: from.y,
+        x2: to.x,
+        y2: to.y,
+      }
+    }
+  }
+  return best
 }
 
 export function LinkArrows({ boardRef, hoveredId, relatedIds }: Props) {
@@ -70,45 +126,23 @@ export function LinkArrows({ boardRef, hoveredId, relatedIds }: Props) {
             `[data-card-id="${CSS.escape(rid)}"]`,
           ),
         ]
-        let best: Line | null = null
-        let bestDist = Infinity
-
-        for (const s of sources) {
-          const sr = s.getBoundingClientRect()
-          const scx = sr.left + sr.width / 2 - boardRect.left
-          const scy = sr.top + sr.height / 2 - boardRect.top
-
-          for (const t of targets) {
-            if (s === t) continue
-            const tr = t.getBoundingClientRect()
-            const tcx = tr.left + tr.width / 2 - boardRect.left
-            const tcy = tr.top + tr.height / 2 - boardRect.top
-            const dist = (scx - tcx) ** 2 + (scy - tcy) ** 2
-            if (dist >= bestDist) continue
-
-            const from = edgePoint(sr, tcx, tcy, boardRect)
-            const to = edgePoint(tr, scx, scy, boardRect)
-            bestDist = dist
-            best = {
-              key: `${hoveredId}-${rid}-${Math.round(from.x)}-${Math.round(to.x)}`,
-              x1: from.x,
-              y1: from.y,
-              x2: to.x,
-              y2: to.y,
-            }
-          }
+        const line =
+          pickBestPair(sources, targets, boardRect, true) ??
+          pickBestPair(sources, targets, boardRect, false)
+        if (line) {
+          next.push({ ...line, key: `${hoveredId}-${rid}-${line.key}` })
         }
-        if (best) next.push(best)
       }
       setLines(next)
     }
 
-    measure()
+    const raf = window.requestAnimationFrame(measure)
     const ro = new ResizeObserver(measure)
     ro.observe(board)
     window.addEventListener('scroll', measure, true)
     window.addEventListener('resize', measure)
     return () => {
+      window.cancelAnimationFrame(raf)
       ro.disconnect()
       window.removeEventListener('scroll', measure, true)
       window.removeEventListener('resize', measure)
@@ -119,29 +153,20 @@ export function LinkArrows({ boardRef, hoveredId, relatedIds }: Props) {
 
   return (
     <svg className="link-arrows" aria-hidden>
-      <defs>
-        <marker
-          id="link-arrow-head"
-          viewBox="0 0 10 10"
-          refX="9"
-          refY="5"
-          markerWidth="7"
-          markerHeight="7"
-          orient="auto-start-reverse"
-        >
-          <path d="M 0 0 L 10 5 L 0 10 z" className="link-arrows__head" />
-        </marker>
-      </defs>
       {lines.map((line) => (
-        <line
-          key={line.key}
-          className="link-arrows__line"
-          x1={line.x1}
-          y1={line.y1}
-          x2={line.x2}
-          y2={line.y2}
-          markerEnd="url(#link-arrow-head)"
-        />
+        <g key={line.key}>
+          <line
+            className="link-arrows__line"
+            x1={line.x1}
+            y1={line.y1}
+            x2={line.x2}
+            y2={line.y2}
+          />
+          <path
+            className="link-arrows__head"
+            d={arrowHead(line.x1, line.y1, line.x2, line.y2)}
+          />
+        </g>
       ))}
     </svg>
   )

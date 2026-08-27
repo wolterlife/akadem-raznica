@@ -15,6 +15,7 @@ interface CardProps {
   onHoverChange?: (id: string | null) => void
   /** Unique dnd id when the same card is shown in two columns */
   dragId?: string
+  colId?: string
 }
 
 function reasonLabel(reasons: LinkReason[]) {
@@ -37,6 +38,7 @@ export function Card({
   linkReasons = [],
   onHoverChange,
   dragId,
+  colId,
 }: CardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: dragId ?? item.id })
@@ -59,6 +61,7 @@ export function Card({
       ref={setNodeRef}
       style={style}
       data-card-id={item.id}
+      data-col={colId}
       className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} ${both ? 'card--shared-owners' : ''} match-${match} card--link-${linkState}`}
       {...listeners}
       {...attributes}

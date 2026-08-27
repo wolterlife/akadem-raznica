@@ -93,6 +93,7 @@ export function KanbanBoard({
       <Card
         key={dragId}
         dragId={dragId}
+        colId={colId}
         item={item}
         match={item.column === 'done' ? 'none' : getMatchKind(item, items)}
         editors={editorsByCard.get(item.id)}
@@ -147,11 +148,6 @@ export function KanbanBoard({
       onDragEnd={onDragEnd}
     >
       <div className="board" ref={boardRef}>
-        <LinkArrows
-          boardRef={boardRef}
-          hoveredId={hoveredId}
-          relatedIds={relatedIds}
-        />
         {COLUMNS.map((col) => {
           const colItems = columnItems[col.id]
           return (
@@ -166,6 +162,11 @@ export function KanbanBoard({
             </Column>
           )
         })}
+        <LinkArrows
+          boardRef={boardRef}
+          hoveredId={hoveredId}
+          relatedIds={relatedIds}
+        />
       </div>
 
       <DragOverlay>
