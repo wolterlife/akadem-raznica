@@ -272,10 +272,31 @@
   font-size: 0.86rem;
   max-width: 11rem;
   cursor: pointer;
+  color-scheme: dark;
 }
 
 .filter-select select:focus {
   outline: none;
+}
+
+.filter-select option {
+  background-color: #171b25;
+  color: #e8ecf4;
+}
+
+.modal select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #e8ecf4;
+  color-scheme: dark;
+}
+
+.modal option {
+  background-color: #171b25;
+  color: #e8ecf4;
 }
 
 .chip {
