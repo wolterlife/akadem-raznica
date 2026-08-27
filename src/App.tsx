@@ -264,13 +264,16 @@ export default function App() {
             </button>
             {shared && (
               <button
-                className="btn btn--ghost"
+                className={`btn btn--ghost btn--refresh ${refreshing ? 'is-loading' : ''}`}
                 type="button"
                 onClick={() => void refreshFromDb()}
                 disabled={refreshing}
                 title="Обновить с сервера"
               >
-                {refreshing ? '…' : '↻ refresh'}
+                <span className="spin" aria-hidden>
+                  ↻
+                </span>
+                refresh
               </button>
             )}
             <button

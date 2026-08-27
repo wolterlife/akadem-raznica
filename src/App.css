@@ -11,7 +11,7 @@
   inset: 0 auto auto 0;
   width: 420px;
   height: 420px;
-  background: radial-gradient(circle, rgba(240, 163, 90, 0.14), transparent 70%);
+  background: radial-gradient(circle, rgba(142, 180, 255, 0.14), transparent 70%);
   filter: blur(10px);
   animation: drift 12s ease-in-out infinite alternate;
 }
@@ -70,7 +70,7 @@
 }
 
 .sync-badge--shared {
-  color: #1a1208;
+  color: var(--on-accent);
   background: var(--accent);
   border-color: transparent;
 }
@@ -161,7 +161,7 @@
 
 .chip--on {
   background: var(--accent);
-  color: #1a1208;
+  color: var(--on-accent);
   font-weight: 700;
 }
 
@@ -179,7 +179,7 @@
 
 .btn--primary {
   background: var(--accent);
-  color: #1a1208;
+  color: var(--on-accent);
   font-weight: 700;
 }
 
@@ -187,6 +187,35 @@
   background: transparent;
   border-color: var(--line);
   color: #d7dce8;
+}
+
+.btn--ghost:disabled {
+  opacity: 0.7;
+  cursor: wait;
+  transform: none;
+}
+
+.btn--refresh {
+  min-width: 7.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn--refresh .spin {
+  display: inline-block;
+  line-height: 1;
+}
+
+.btn--refresh.is-loading .spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .btn--danger {
@@ -292,7 +321,7 @@
 
 .card:hover {
   transform: translateY(-2px);
-  border-color: rgba(240, 163, 90, 0.28);
+  border-color: rgba(142, 180, 255, 0.3);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.36);
 }
 
@@ -327,8 +356,8 @@
 
 .card__edit:hover {
   color: var(--accent);
-  border-color: rgba(240, 163, 90, 0.45);
-  background: rgba(240, 163, 90, 0.12);
+  border-color: rgba(142, 180, 255, 0.45);
+  background: rgba(142, 180, 255, 0.12);
 }
 
 .card__head {

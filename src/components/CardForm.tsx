@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent } from 'react'
 import type { Assessment, AssessmentType, Owner } from '../types'
 import { uid } from '../sync'
 
@@ -20,6 +20,7 @@ const empty = {
 
 export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
   const titleId = useId()
+  const closeOnBackdrop = useRef(false)
   const [form, setForm] = useState(() =>
     initial
       ? {
@@ -40,6 +41,15 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
+
+  function onBackdropPointerDown(e: MouseEvent<HTMLDivElement>) {
+    closeOnBackdrop.current = e.target === e.currentTarget
+  }
+
+  function onBackdropClick(e: MouseEvent<HTMLDivElement>) {
+    if (e.target === e.currentTarget && closeOnBackdrop.current) onClose()
+    closeOnBackdrop.current = false
+  }
 
   function toggleOwner(owner: Owner) {
     setForm((prev) => {
@@ -90,9 +100,15 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
   }
 
   return (
-    <div className="modal-backdrop" onClick={onClose} role="presentation">
+    <div
+      className="modal-backdrop"
+      onMouseDown={onBackdropPointerDown}
+      onClick={onBackdropClick}
+      role="presentation"
+    >
       <form
         className="modal"
+        onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
         aria-labelledby={titleId}
