@@ -479,40 +479,24 @@
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 22px rgba(0, 0, 0, 0.34);
 }
 
-.card--link-focus {
-  border: 2px solid #c5dcff;
-  outline: 3px solid #8eb4ff;
-  outline-offset: 3px;
-  box-shadow:
-    0 0 0 1px #8eb4ff,
-    0 0 22px rgba(142, 180, 255, 0.55),
-    0 12px 28px rgba(0, 0, 0, 0.45);
-  z-index: 2;
-}
-
-.card--link-related {
-  border: 2px solid #b6f0e2;
-  outline: 3px solid #5fd4b8;
-  outline-offset: 3px;
-  box-shadow:
-    0 0 0 1px #5fd4b8,
-    0 0 20px rgba(95, 212, 184, 0.5),
-    0 10px 24px rgba(0, 0, 0, 0.4);
+.card--link-focus,
+.card--link-related,
+.card--link-related.card--shared-owners {
+  border: 2px solid #9ec0ff;
+  outline: 2px solid rgba(158, 192, 255, 0.45);
+  outline-offset: 2px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.32);
   z-index: 1;
 }
 
-.card--link-related.card--shared-owners {
-  border-color: #c5dcff;
-  outline-color: #8eb4ff;
-  box-shadow:
-    0 0 0 1px #8eb4ff,
-    0 0 20px rgba(142, 180, 255, 0.5),
-    0 10px 24px rgba(0, 0, 0, 0.4);
+.card--link-focus {
+  outline-color: rgba(158, 192, 255, 0.7);
+  z-index: 2;
 }
 
 .card--link-dim {
-  opacity: 0.22;
-  filter: grayscale(0.4);
+  opacity: 0.28;
+  filter: grayscale(0.35);
   pointer-events: none;
 }
 
