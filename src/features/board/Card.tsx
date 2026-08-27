@@ -16,8 +16,10 @@ interface CardProps {
 }
 
 function reasonLabel(reasons: LinkReason[]) {
+  const hasShared = reasons.includes('shared')
   const hasSubj = reasons.includes('subject')
   const hasProf = reasons.includes('professor')
+  if (hasShared && hasSubj) return 'связь: тот же предмет · есть у обоих'
   if (hasSubj && hasProf) return 'связь: предмет + препод'
   if (hasSubj) return 'связь: тот же предмет'
   if (hasProf) return 'связь: тот же препод'
@@ -107,17 +109,25 @@ export function Card({
       </p>
 
       {both && <p className="card__match card__match--shared">нужно D и M</p>}
+      {!both && match === 'ideal' && (
+        <p className="card__match card__match--ideal">
+          тот же предмет · есть у обоих
+        </p>
+      )}
       {!both && match === 'professor' && (
         <p className="card__match card__match--professor">общий преподаватель</p>
-      )}
-      {!both && match === 'ideal' && (
-        <p className="card__match card__match--ideal">тот же предмет у обоих</p>
       )}
       {hoverLink && linkState === 'related' && (
         <p className="card__match card__match--hover">{hoverLink}</p>
       )}
       {linkState === 'focus' && (
-        <p className="card__match card__match--hover">смотри связанные</p>
+        <p className="card__match card__match--hover">
+          {linkReasons.includes('shared')
+            ? 'есть у обоих · смотри связанные'
+            : linkReasons.length
+              ? 'смотри связанные'
+              : 'нет явных связей'}
+        </p>
       )}
 
       {item.note && <p className="card__note">{item.note}</p>}

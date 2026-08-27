@@ -480,21 +480,24 @@
 }
 
 .card--link-focus {
-  border-color: rgba(142, 180, 255, 0.55);
-  box-shadow:
-    0 0 0 1px rgba(142, 180, 255, 0.35),
-    0 1px 0 rgba(255, 255, 255, 0.04),
-    0 10px 22px rgba(0, 0, 0, 0.34);
+  border: 2px solid #8eb4ff;
+  outline: 2px solid rgba(142, 180, 255, 0.35);
+  outline-offset: 2px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
   z-index: 2;
 }
 
 .card--link-related {
-  border-color: rgba(125, 211, 192, 0.55);
-  box-shadow:
-    inset 3px 0 0 #7dd3c0,
-    0 0 0 1px rgba(125, 211, 192, 0.25),
-    0 8px 18px rgba(0, 0, 0, 0.28);
+  border: 2px solid #7dd3c0;
+  outline: 2px solid rgba(125, 211, 192, 0.3);
+  outline-offset: 2px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
   z-index: 1;
+}
+
+.card--link-related.card--shared-owners {
+  border-color: #8eb4ff;
+  outline-color: rgba(142, 180, 255, 0.35);
 }
 
 .card--link-dim {

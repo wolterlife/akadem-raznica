@@ -119,7 +119,7 @@ export function linkGroupKey(card: Assessment): string {
   return `s:${normalize(card.subject)}`
 }
 
-export type LinkReason = 'subject' | 'professor'
+export type LinkReason = 'subject' | 'professor' | 'shared'
 
 export function getRelatedLinks(
   card: Assessment,
@@ -134,11 +134,29 @@ export function getRelatedLinks(
   for (const other of all) {
     if (other.id === card.id) continue
     const reasons: LinkReason[] = []
-    if (normalize(other.subject) === subj) reasons.push('subject')
+    const sameSubject = normalize(other.subject) === subj
+    if (sameSubject) {
+      reasons.push('subject')
+      const otherBoth =
+        other.owners.includes('D') && other.owners.includes('M')
+      const selfBoth = card.owners.includes('D') && card.owners.includes('M')
+      // личная карточка ↔ общая по тому же предмету (ООПэ ↔ ООП)
+      if (otherBoth !== selfBoth) reasons.push('shared')
+    }
     const otherProf = profKey(other.professor)
     if (prof && otherProf && prof === otherProf) reasons.push('professor')
     if (reasons.length) map.set(other.id, reasons)
   }
+
+  const focusReasons: LinkReason[] = []
+  for (const [id, reasons] of map) {
+    if (id === card.id) continue
+    for (const r of reasons) {
+      if (!focusReasons.includes(r)) focusReasons.push(r)
+    }
+  }
+  map.set(card.id, focusReasons)
+
   return map
 }
 

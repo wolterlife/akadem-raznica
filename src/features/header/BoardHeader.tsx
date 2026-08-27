@@ -82,7 +82,7 @@ export function BoardHeader({
           </li>
           <li>
             <span className="legend__swatch legend__swatch--ideal" />
-            Идеал = один предмет у обоих
+            Идеал = один предмет · есть у обоих
           </li>
           <li>
             <span className="legend__swatch legend__swatch--prof" />
