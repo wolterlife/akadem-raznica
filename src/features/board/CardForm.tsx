@@ -135,7 +135,6 @@ export function CardForm({
           value={form.subject}
           options={subjects}
           required
-          autoFocus
           placeholder="Начни писать…"
           onChange={(subject) => setForm({ ...form, subject })}
         />

@@ -6,7 +6,6 @@ interface Props {
   options: string[]
   placeholder?: string
   required?: boolean
-  autoFocus?: boolean
   allowCreate?: boolean
   onChange: (value: string) => void
 }
@@ -17,18 +16,23 @@ export function Combobox({
   options,
   placeholder,
   required,
-  autoFocus,
   allowCreate = true,
   onChange,
 }: Props) {
   const listId = useId()
   const rootRef = useRef<HTMLDivElement>(null)
+  const readyAt = useRef(0)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState(value)
 
   useEffect(() => {
     setQuery(value)
   }, [value])
+
+  useEffect(() => {
+    // ignore click-through from the button that opened the modal
+    readyAt.current = Date.now() + 400
+  }, [])
 
   useEffect(() => {
     if (!open) return
@@ -52,7 +56,6 @@ export function Combobox({
       setOpen(false)
     }
 
-    // capture: modal calls stopPropagation on bubble
     document.addEventListener('pointerdown', onPointerDown, true)
     document.addEventListener('mousedown', onMouseDown, true)
     document.addEventListener('keydown', onKey, true)
@@ -83,6 +86,11 @@ export function Combobox({
     setOpen(false)
   }
 
+  function openList() {
+    if (Date.now() < readyAt.current) return
+    setOpen(true)
+  }
+
   return (
     <div className="combo" ref={rootRef}>
       <label className="combo__label">
@@ -90,14 +98,13 @@ export function Combobox({
         <input
           value={query}
           required={required}
-          autoFocus={autoFocus}
           placeholder={placeholder}
           role="combobox"
           aria-expanded={open}
           aria-controls={listId}
           aria-autocomplete="list"
           autoComplete="off"
-          onClick={() => setOpen(true)}
+          onClick={openList}
           onChange={(e) => {
             setQuery(e.target.value)
             onChange(e.target.value)
