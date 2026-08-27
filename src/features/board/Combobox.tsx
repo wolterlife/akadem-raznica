@@ -33,8 +33,16 @@ export function Combobox({
   useEffect(() => {
     if (!open) return
 
+    function closeIfOutside(target: EventTarget | null) {
+      if (!rootRef.current?.contains(target as Node)) setOpen(false)
+    }
+
     function onPointerDown(e: PointerEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false)
+      closeIfOutside(e.target)
+    }
+
+    function onMouseDown(e: MouseEvent) {
+      closeIfOutside(e.target)
     }
 
     function onKey(e: KeyboardEvent) {
@@ -44,11 +52,13 @@ export function Combobox({
       setOpen(false)
     }
 
-    // capture: modal stops bubbling mousedown, so bubble-phase never fires
+    // capture: modal calls stopPropagation on bubble
     document.addEventListener('pointerdown', onPointerDown, true)
+    document.addEventListener('mousedown', onMouseDown, true)
     document.addEventListener('keydown', onKey, true)
     return () => {
       document.removeEventListener('pointerdown', onPointerDown, true)
+      document.removeEventListener('mousedown', onMouseDown, true)
       document.removeEventListener('keydown', onKey, true)
     }
   }, [open])
@@ -87,13 +97,21 @@ export function Combobox({
           aria-controls={listId}
           aria-autocomplete="list"
           autoComplete="off"
-          onFocus={() => setOpen(true)}
+          onClick={() => setOpen(true)}
           onChange={(e) => {
             setQuery(e.target.value)
             onChange(e.target.value)
             setOpen(true)
           }}
+          onBlur={(e) => {
+            const next = e.relatedTarget as Node | null
+            if (!rootRef.current?.contains(next)) setOpen(false)
+          }}
           onKeyDown={(e) => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault()
+              setOpen(true)
+            }
             if (e.key === 'Enter' && open && filtered[0]) {
               e.preventDefault()
               pick(filtered[0])
@@ -107,6 +125,7 @@ export function Combobox({
             <li key={opt}>
               <button
                 type="button"
+                tabIndex={-1}
                 className="combo__option"
                 role="option"
                 onMouseDown={(e) => e.preventDefault()}
@@ -120,6 +139,7 @@ export function Combobox({
             <li>
               <button
                 type="button"
+                tabIndex={-1}
                 className="combo__option combo__option--create"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => pick(query.trim())}
