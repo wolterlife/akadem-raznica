@@ -1,15 +1,28 @@
-import { onValue, ref, set, type Unsubscribe } from 'firebase/database'
+import { get, ref, set } from 'firebase/database'
 import { getDb, isSyncConfigured } from './firebase'
 import type { Assessment } from './types'
 
 const BOARD_PATH = 'board'
 const STORAGE_KEY = 'akadem-raznica:v1'
+export const PULL_INTERVAL_MS = 15_000
 
 export type SyncStatus = 'shared' | 'local' | 'connecting' | 'error'
 
 interface BoardPayload {
   items: Assessment[]
   updatedAt: number
+}
+
+function parseBoard(val: unknown): Assessment[] | null {
+  if (val == null) return null
+  if (Array.isArray(val)) return val as Assessment[]
+  if (
+    typeof val === 'object' &&
+    Array.isArray((val as BoardPayload).items)
+  ) {
+    return (val as BoardPayload).items
+  }
+  return null
 }
 
 export function loadLocal(fallback: Assessment[]): Assessment[] {
@@ -27,34 +40,12 @@ export function saveLocal(items: Assessment[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
 }
 
-export function subscribeBoard(
-  onData: (items: Assessment[] | null) => void,
-  onError: (message: string) => void,
-): Unsubscribe | null {
+/** One-shot pull from Realtime Database */
+export async function pullBoard(): Promise<Assessment[] | null> {
   const db = getDb()
   if (!db) return null
-
-  const boardRef = ref(db, BOARD_PATH)
-  return onValue(
-    boardRef,
-    (snap) => {
-      const val = snap.val() as BoardPayload | Assessment[] | null
-      if (val == null) {
-        onData(null)
-        return
-      }
-      if (Array.isArray(val)) {
-        onData(val)
-        return
-      }
-      if (Array.isArray(val.items)) {
-        onData(val.items)
-        return
-      }
-      onData(null)
-    },
-    (err) => onError(err.message),
-  )
+  const snap = await get(ref(db, BOARD_PATH))
+  return parseBoard(snap.val())
 }
 
 export async function pushBoard(items: Assessment[]): Promise<void> {
@@ -69,10 +60,14 @@ export async function pushBoard(items: Assessment[]): Promise<void> {
   } satisfies BoardPayload)
 }
 
+export function boardsEqual(a: Assessment[], b: Assessment[]) {
+  return JSON.stringify(a) === JSON.stringify(b)
+}
+
 export { isSyncConfigured }
 
 /**
- * ideal — оба студента, один предмет и (обычно) один препод
+ * ideal — оба студента, один предмет и (обычно) один преподаватель
  * professor — разные предметы, но общий преподаватель
  */
 export function getMatchKind(

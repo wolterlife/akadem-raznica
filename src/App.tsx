@@ -11,12 +11,14 @@ import {
 } from '@dnd-kit/core'
 import { COLUMNS, SEED } from './data'
 import {
+  PULL_INTERVAL_MS,
+  boardsEqual,
   getMatchKind,
   isSyncConfigured,
   loadLocal,
+  pullBoard,
   pushBoard,
   saveLocal,
-  subscribeBoard,
   type SyncStatus,
 } from './sync'
 import type { Assessment, ColumnId } from './types'
@@ -32,36 +34,66 @@ export default function App() {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>(
     shared ? 'connecting' : 'local',
   )
+  const [refreshing, setRefreshing] = useState(false)
   const [editing, setEditing] = useState<Assessment | null>(null)
   const [creating, setCreating] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'ideal' | 'professor'>('all')
   const readyRef = useRef(!shared)
   const skipPushRef = useRef(false)
+  const itemsRef = useRef(items)
+  itemsRef.current = items
+
+  const applyRemote = useCallback(async (seedIfEmpty: boolean) => {
+    const remote = await pullBoard()
+    skipPushRef.current = true
+    if (remote == null) {
+      if (seedIfEmpty) {
+        setItems(SEED)
+        await pushBoard(SEED)
+      }
+    } else if (!boardsEqual(remote, itemsRef.current)) {
+      setItems(remote)
+    } else {
+      skipPushRef.current = false
+    }
+    readyRef.current = true
+    setSyncStatus('shared')
+  }, [])
+
+  const refreshFromDb = useCallback(async () => {
+    if (!shared) return
+    setRefreshing(true)
+    try {
+      await applyRemote(false)
+    } catch {
+      setSyncStatus('error')
+    } finally {
+      setRefreshing(false)
+    }
+  }, [shared, applyRemote])
 
   useEffect(() => {
     if (!shared) return
 
-    const unsub = subscribeBoard(
-      (remote) => {
-        skipPushRef.current = true
-        if (remote == null) {
-          setItems(SEED)
-          void pushBoard(SEED).finally(() => {
-            readyRef.current = true
-            setSyncStatus('shared')
-          })
-        } else {
-          setItems(remote)
-          readyRef.current = true
-          setSyncStatus('shared')
-        }
-      },
-      () => setSyncStatus('error'),
-    )
+    let cancelled = false
+    void (async () => {
+      try {
+        if (!cancelled) await applyRemote(true)
+      } catch {
+        if (!cancelled) setSyncStatus('error')
+      }
+    })()
 
-    return () => unsub?.()
-  }, [shared])
+    const id = window.setInterval(() => {
+      void applyRemote(false).catch(() => setSyncStatus('error'))
+    }, PULL_INTERVAL_MS)
+
+    return () => {
+      cancelled = true
+      window.clearInterval(id)
+    }
+  }, [shared, applyRemote])
 
   useEffect(() => {
     if (!readyRef.current) return
@@ -162,7 +194,7 @@ export default function App() {
 
   const statusLabel =
     syncStatus === 'shared'
-      ? 'общая доска · онлайн'
+      ? 'общая доска · pull 15с'
       : syncStatus === 'connecting'
         ? 'подключение…'
         : syncStatus === 'error'
@@ -230,6 +262,17 @@ export default function App() {
             <button className="btn btn--ghost" type="button" onClick={resetDemo}>
               демо
             </button>
+            {shared && (
+              <button
+                className="btn btn--ghost"
+                type="button"
+                onClick={() => void refreshFromDb()}
+                disabled={refreshing}
+                title="Обновить с сервера"
+              >
+                {refreshing ? '…' : '↻ refresh'}
+              </button>
+            )}
             <button
               className="btn btn--primary"
               type="button"
@@ -282,9 +325,9 @@ export default function App() {
       </DndContext>
 
       <p className="hint">
-        Перетаскивай карточки · двойной клик — редактировать
+        Перетаскивай карточки · карандаш — редактировать
         {shared
-          ? ' · изменения видны всем сразу'
+          ? ' · синк: push при изменении, pull каждые 15с'
           : ' · пока локально (нужен Firebase)'}
       </p>
 
