@@ -27,7 +27,8 @@ interface Props {
   visible: Assessment[]
   sortKey: SortKey
   hoveredId: string | null
-  onHoverChange: (id: string | null) => void
+  hoveredCol: string | null
+  onHoverChange: (id: string | null, col?: string | null) => void
   editorsByCard: Map<string, PresenceUser[]>
   onEdit: (item: Assessment) => void
   onMove: (id: string, column: ColumnId) => void
@@ -43,6 +44,7 @@ export function KanbanBoard({
   visible,
   sortKey,
   hoveredId,
+  hoveredCol,
   onHoverChange,
   editorsByCard,
   onEdit,
@@ -74,9 +76,14 @@ export function KanbanBoard({
     }
   }, [visible, items, sortKey])
 
-  const relatedIds = useMemo(() => {
-    if (!relatedLinks || !hoveredId) return []
-    return [...relatedLinks.keys()].filter((id) => id !== hoveredId)
+  const relatedMap = useMemo(() => {
+    const map = new Map<string, LinkReason[]>()
+    if (!relatedLinks || !hoveredId) return map
+    for (const [id, reasons] of relatedLinks) {
+      if (id === hoveredId) continue
+      map.set(id, reasons)
+    }
+    return map
   }, [relatedLinks, hoveredId])
 
   function linkStateFor(id: string): 'idle' | 'focus' | 'related' | 'dim' {
@@ -165,7 +172,8 @@ export function KanbanBoard({
         <LinkArrows
           boardRef={boardRef}
           hoveredId={hoveredId}
-          relatedIds={relatedIds}
+          hoveredCol={hoveredCol}
+          related={relatedMap}
         />
       </div>
 

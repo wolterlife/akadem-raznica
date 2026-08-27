@@ -39,7 +39,7 @@ export default function App() {
   const [profFilter, setProfFilter] = useState('all')
   const [sortKey, setSortKey] = useState<SortKey>('links')
 
-  const { hoveredId, onCardHover } = useCardHover()
+  const { hoveredId, hoveredCol, onCardHover } = useCardHover()
   const { identity, setIdentity, online, editorsByCard, renameSelf } =
     usePresenceSession(shared, editing?.id ?? null)
 
@@ -95,6 +95,7 @@ export default function App() {
         visible={visible}
         sortKey={sortKey}
         hoveredId={hoveredId}
+        hoveredCol={hoveredCol}
         onHoverChange={onCardHover}
         editorsByCard={editorsByCard}
         onEdit={setEditing}

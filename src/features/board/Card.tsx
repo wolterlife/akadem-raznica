@@ -12,7 +12,7 @@ interface CardProps {
   editors?: PresenceUser[]
   linkState?: 'idle' | 'focus' | 'related' | 'dim'
   linkReasons?: LinkReason[]
-  onHoverChange?: (id: string | null) => void
+  onHoverChange?: (id: string | null, col?: string | null) => void
   /** Unique dnd id when the same card is shown in two columns */
   dragId?: string
   colId?: string
@@ -65,7 +65,7 @@ export function Card({
       className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} ${both ? 'card--shared-owners' : ''} match-${match} card--link-${linkState}`}
       {...listeners}
       {...attributes}
-      onMouseEnter={() => onHoverChange?.(item.id)}
+      onMouseEnter={() => onHoverChange?.(item.id, colId)}
       onMouseLeave={() => onHoverChange?.(null)}
     >
       {editors.length > 0 && (
