@@ -2,9 +2,12 @@
 import type { Assessment, AssessmentType, Owner } from '../../types'
 import { TYPE_LABEL } from '../../types'
 import { uid } from '../../sync'
+import { Combobox } from './Combobox'
 
 interface FormProps {
   initial?: Assessment | null
+  subjects: string[]
+  professors: string[]
   onClose: () => void
   onSave: (item: Assessment) => void
   onDelete?: (id: string) => void
@@ -21,7 +24,14 @@ const empty = {
 
 const TYPE_OPTIONS = Object.entries(TYPE_LABEL) as [AssessmentType, string][]
 
-export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
+export function CardForm({
+  initial,
+  subjects,
+  professors,
+  onClose,
+  onSave,
+  onDelete,
+}: FormProps) {
   const titleId = useId()
   const closeOnBackdrop = useRef(false)
   const [form, setForm] = useState(() =>
@@ -116,41 +126,39 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
         onSubmit={submit}
         aria-labelledby={titleId}
       >
-        <h2 id={titleId}>{initial ? 'Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ' : 'РќРѕРІР°СЏ РєР°СЂС‚РѕС‡РєР°'}</h2>
-        <p className="modal__hint">1 РїРѕР·РёС†РёСЏ РёР· Р»РёСЃС‚Р° = 1 РєР°СЂС‚РѕС‡РєР°</p>
+        <h2 id={titleId}>{initial ? 'Редактировать' : 'Новая карточка'}</h2>
+        <p className="modal__hint">1 позиция из листа = 1 карточка</p>
+
+        <Combobox
+          label="Предмет"
+          value={form.subject}
+          options={subjects}
+          required
+          autoFocus
+          placeholder="Начни писать…"
+          onChange={(subject) => setForm({ ...form, subject })}
+        />
 
         <label>
-          РџСЂРµРґРјРµС‚
-          <input
-            value={form.subject}
-            onChange={(e) => setForm({ ...form, subject: e.target.value })}
-            required
-            autoFocus
-            placeholder="РњР°С‚РµРјР°С‚РёС‡РµСЃРєРёР№ Р°РЅР°Р»РёР·"
-          />
-        </label>
-
-        <label>
-          РљРѕРґ
+          Код
           <input
             value={form.short}
             onChange={(e) => setForm({ ...form, short: e.target.value })}
-            placeholder="РњРђРўРђРќ"
+            placeholder="МАТАН"
             maxLength={6}
           />
         </label>
 
-        <label>
-          РџСЂРµРїРѕРґР°РІР°С‚РµР»СЊ
-          <input
-            value={form.professor}
-            onChange={(e) => setForm({ ...form, professor: e.target.value })}
-            placeholder="РРІР°РЅРѕРІР° Р•.Рџ."
-          />
-        </label>
+        <Combobox
+          label="Преподаватель"
+          value={form.professor}
+          options={professors}
+          placeholder="Начни писать или добавь нового…"
+          onChange={(professor) => setForm({ ...form, professor })}
+        />
 
         <label>
-          РўРёРї
+          Тип
           <select
             value={form.type}
             onChange={(e) =>
@@ -166,7 +174,7 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
         </label>
 
         <fieldset>
-          <legend>РљРѕРјСѓ РЅСѓР¶РЅРѕ</legend>
+          <legend>Кому нужно</legend>
           <label className="check">
             <input
               type="checkbox"
@@ -186,11 +194,11 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
         </fieldset>
 
         <label>
-          Р—Р°РјРµС‚РєР°
+          Заметка
           <input
             value={form.note}
             onChange={(e) => setForm({ ...form, note: e.target.value })}
-            placeholder="РѕРїС†РёРѕРЅР°Р»СЊРЅРѕ"
+            placeholder="опционально"
           />
         </label>
 
@@ -201,18 +209,17 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
               className="btn btn--danger"
               onClick={() => onDelete(initial.id)}
             >
-              РЈРґР°Р»РёС‚СЊ
+              Удалить
             </button>
           )}
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            РћС‚РјРµРЅР°
+            Отмена
           </button>
           <button type="submit" className="btn btn--primary">
-            РЎРѕС…СЂР°РЅРёС‚СЊ
+            Сохранить
           </button>
         </div>
       </form>
     </div>
   )
 }
-

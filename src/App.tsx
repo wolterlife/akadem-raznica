@@ -5,6 +5,7 @@ import {
   computeStats,
   filterAndSortItems,
   listProfessors,
+  listSubjects,
   type MatchFilter,
   type SortKey,
   type TypeFilter,
@@ -43,6 +44,7 @@ export default function App() {
     usePresenceSession(shared, editing?.id ?? null)
 
   const professors = useMemo(() => listProfessors(items), [items])
+  const subjects = useMemo(() => listSubjects(items), [items])
   const visible = useMemo(
     () =>
       filterAndSortItems(items, {
@@ -106,6 +108,8 @@ export default function App() {
       {(creating || editing) && (
         <CardForm
           initial={editing}
+          subjects={subjects}
+          professors={professors}
           onClose={closeForm}
           onSave={(item) => {
             upsert(item)

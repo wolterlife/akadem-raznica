@@ -21,6 +21,15 @@ const TYPE_ORDER: AssessmentType[] = [
   'practice',
 ]
 
+export function listSubjects(items: Assessment[]): string[] {
+  const set = new Set<string>()
+  for (const item of items) {
+    const s = item.subject.trim()
+    if (s) set.add(s)
+  }
+  return [...set].sort((a, b) => a.localeCompare(b, 'ru'))
+}
+
 export function listProfessors(items: Assessment[]): string[] {
   const set = new Set<string>()
   for (const item of items) {
