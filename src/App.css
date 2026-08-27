@@ -91,6 +91,98 @@
   border-color: transparent;
 }
 
+.online {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.online__user {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--u) 40%, transparent);
+  background: color-mix(in srgb, var(--u) 12%, transparent);
+  font-size: 0.82rem;
+}
+
+.online__user--me {
+  outline: 1px solid color-mix(in srgb, var(--u) 70%, white 20%);
+}
+
+.online__dot,
+.presence-dot {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #0b1020;
+  background: var(--u, var(--accent));
+}
+
+.online__name {
+  max-width: 9ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.online__edit {
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+
+.btn--me {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 10rem;
+}
+
+.btn--me .online__dot {
+  background: var(--u);
+}
+
+.name-gate__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.card--busy {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.card__presence {
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+}
+
+.presence-dot {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  animation: bob 1.4s ease-in-out infinite;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
 .top__side {
   display: flex;
   flex-direction: column;
@@ -400,6 +492,31 @@
 .card__type--credit {
   background: rgba(106, 168, 255, 0.16);
   color: #a8c9ff;
+}
+
+.card__type--diff_credit {
+  background: rgba(125, 211, 192, 0.16);
+  color: #9ee0d2;
+}
+
+.card__type--coursework,
+.card__type--course_project {
+  background: rgba(196, 168, 255, 0.16);
+  color: #d2bfff;
+}
+
+.card__type--practice {
+  background: rgba(255, 200, 120, 0.16);
+  color: #ffd9a0;
+}
+
+.modal select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #e8ecf4;
 }
 
 .card__subject {

@@ -1,14 +1,17 @@
 import type { ReactNode, MouseEvent, PointerEvent } from 'react'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import type { Assessment, MatchKind } from '../types'
+import { TYPE_LABEL } from '../types'
+import type { PresenceUser } from '../presence'
 
 interface CardProps {
   item: Assessment
   match: MatchKind
   onEdit: (item: Assessment) => void
+  editors?: PresenceUser[]
 }
 
-export function Card({ item, match, onEdit }: CardProps) {
+export function Card({ item, match, onEdit, editors = [] }: CardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: item.id })
 
@@ -26,10 +29,25 @@ export function Card({ item, match, onEdit }: CardProps) {
     <article
       ref={setNodeRef}
       style={style}
-      className={`card ${isDragging ? 'card--dragging' : ''} match-${match}`}
+      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} match-${match}`}
       {...listeners}
       {...attributes}
     >
+      {editors.length > 0 && (
+        <div className="card__presence" aria-label="Сейчас редактируют">
+          {editors.map((u) => (
+            <span
+              key={u.id}
+              className="presence-dot"
+              style={{ background: u.color }}
+              title={`${u.name} редактирует`}
+            >
+              {u.name.slice(0, 1).toUpperCase()}
+            </span>
+          ))}
+        </div>
+      )}
+
       <button
         type="button"
         className="card__edit"
@@ -53,7 +71,7 @@ export function Card({ item, match, onEdit }: CardProps) {
       <header className="card__head">
         <span className="card__short">{item.short}</span>
         <span className={`card__type card__type--${item.type}`}>
-          {item.type === 'exam' ? 'экзамен' : 'зачёт'}
+          {TYPE_LABEL[item.type]}
         </span>
       </header>
 
@@ -63,8 +81,8 @@ export function Card({ item, match, onEdit }: CardProps) {
       {match !== 'none' && (
         <p className={`card__match card__match--${match}`}>
           {match === 'ideal'
-            ? 'общий предмет и преподаватель'
-            : 'общий преподаватель'}
+            ? 'общий предмет и кафедра'
+            : 'общая кафедра'}
         </p>
       )}
 

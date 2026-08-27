@@ -21,13 +21,26 @@ import {
   saveLocal,
   type SyncStatus,
 } from './sync'
+import {
+  clearIdentity,
+  loadIdentity,
+  setPresenceEditing,
+  startPresence,
+  type Identity,
+  type PresenceUser,
+} from './presence'
 import type { Assessment, ColumnId } from './types'
 import { Card, Column } from './components/BoardParts'
 import { CardForm } from './components/CardForm'
+import { NameGate } from './components/NameGate'
 import './App.css'
 
 export default function App() {
   const shared = isSyncConfigured()
+  const [identity, setIdentity] = useState<Identity | null>(() =>
+    shared ? loadIdentity() : null,
+  )
+  const [online, setOnline] = useState<PresenceUser[]>([])
   const [items, setItems] = useState<Assessment[]>(() =>
     shared ? [] : loadLocal(SEED),
   )
@@ -43,6 +56,20 @@ export default function App() {
   const skipPushRef = useRef(false)
   const itemsRef = useRef(items)
   itemsRef.current = items
+
+  useEffect(() => {
+    if (!shared || !identity) {
+      setOnline([])
+      return
+    }
+    return startPresence(identity, setOnline)
+  }, [shared, identity])
+
+  useEffect(() => {
+    if (!shared) return
+    if (editing) setPresenceEditing(editing.id)
+    else setPresenceEditing(null)
+  }, [shared, editing])
 
   const applyRemote = useCallback(async (seedIfEmpty: boolean) => {
     const remote = await pullBoard()
@@ -183,6 +210,23 @@ export default function App() {
     setItems(SEED)
   }
 
+  function renameSelf() {
+    clearIdentity()
+    setIdentity(null)
+    setOnline([])
+  }
+
+  const editorsByCard = useMemo(() => {
+    const map = new Map<string, PresenceUser[]>()
+    for (const u of online) {
+      if (!u.editingId || u.id === identity?.id) continue
+      const list = map.get(u.editingId) ?? []
+      list.push(u)
+      map.set(u.editingId, list)
+    }
+    return map
+  }, [online, identity?.id])
+
   const stats = useMemo(() => {
     const open = items.filter((i) => i.column !== 'done')
     const ideal = open.filter((i) => getMatchKind(i, items) === 'ideal').length
@@ -203,16 +247,37 @@ export default function App() {
 
   return (
     <div className="app">
+      {shared && !identity && <NameGate onReady={setIdentity} />}
       <div className="glow" aria-hidden />
       <header className="top">
         <div className="brand">
           <p className="brand__mark">академ-разница</p>
           <h1>Канбан сдач</h1>
           <p className="brand__lead">
-            D и M закрывают разницу. Ищем пересечения: один предмет и один
-            преподаватель — лучше сдавать вместе.
+            D и M закрывают разницу. Ищем пересечения: один предмет и одна
+            кафедра — лучше сдавать вместе.
           </p>
           <p className={`sync-badge sync-badge--${syncStatus}`}>{statusLabel}</p>
+          {shared && online.length > 0 && (
+            <div className="online" aria-label="Кто онлайн">
+              {online.map((u) => (
+                <span
+                  key={u.id}
+                  className={`online__user ${u.id === identity?.id ? 'online__user--me' : ''}`}
+                  style={{ ['--u' as string]: u.color }}
+                  title={
+                    u.editingId
+                      ? `${u.name} · редактирует карточку`
+                      : `${u.name} · на доске`
+                  }
+                >
+                  <span className="online__dot">{u.name.slice(0, 1).toUpperCase()}</span>
+                  <span className="online__name">{u.name}</span>
+                  {u.editingId ? <span className="online__edit">✎</span> : null}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="top__side">
@@ -227,7 +292,7 @@ export default function App() {
             </div>
             <div>
               <strong>{stats.professor}</strong>
-              <span>общий преп.</span>
+              <span>общая каф.</span>
             </div>
             <div>
               <strong>{stats.done}</strong>
@@ -256,12 +321,24 @@ export default function App() {
                 onClick={() => setFilter('professor')}
                 type="button"
               >
-                общий преп.
+                общая каф.
               </button>
             </div>
             <button className="btn btn--ghost" type="button" onClick={resetDemo}>
               демо
             </button>
+            {shared && identity && (
+              <button
+                className="btn btn--ghost btn--me"
+                type="button"
+                onClick={renameSelf}
+                title="Сменить имя"
+                style={{ ['--u' as string]: identity.color }}
+              >
+                <span className="online__dot">{identity.name.slice(0, 1).toUpperCase()}</span>
+                {identity.name}
+              </button>
+            )}
             {shared && (
               <button
                 className={`btn btn--ghost btn--refresh ${refreshing ? 'is-loading' : ''}`}
@@ -309,6 +386,7 @@ export default function App() {
                   match={
                     item.column === 'done' ? 'none' : getMatchKind(item, items)
                   }
+                  editors={editorsByCard.get(item.id)}
                   onEdit={setEditing}
                 />
               ))}
@@ -330,7 +408,7 @@ export default function App() {
       <p className="hint">
         Перетаскивай карточки · карандаш — редактировать
         {shared
-          ? ' · синк: push при изменении, pull каждые 15с'
+          ? ' · синк 15с · онлайн и ✎ на карточке видны другим'
           : ' · пока локально (нужен Firebase)'}
       </p>
 
@@ -340,9 +418,20 @@ export default function App() {
           onClose={() => {
             setCreating(false)
             setEditing(null)
+            setPresenceEditing(null)
           }}
-          onSave={upsert}
-          onDelete={editing ? remove : undefined}
+          onSave={(item) => {
+            upsert(item)
+            setPresenceEditing(null)
+          }}
+          onDelete={
+            editing
+              ? (id) => {
+                  remove(id)
+                  setPresenceEditing(null)
+                }
+              : undefined
+          }
         />
       )}
     </div>

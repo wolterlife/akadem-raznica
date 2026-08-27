@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type MouseEvent } from 'react'
 import type { Assessment, AssessmentType, Owner } from '../types'
+import { TYPE_LABEL } from '../types'
 import { uid } from '../sync'
 
 interface FormProps {
@@ -17,6 +18,8 @@ const empty = {
   owners: ['D'] as Owner[],
   note: '',
 }
+
+const TYPE_OPTIONS = Object.entries(TYPE_LABEL) as [AssessmentType, string][]
 
 export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
   const titleId = useId()
@@ -114,7 +117,7 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
         aria-labelledby={titleId}
       >
         <h2 id={titleId}>{initial ? 'Редактировать' : 'Новая карточка'}</h2>
-        <p className="modal__hint">1 экзамен / зачёт = 1 карточка</p>
+        <p className="modal__hint">1 позиция из листа = 1 карточка</p>
 
         <label>
           Предмет
@@ -132,40 +135,36 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
           <input
             value={form.short}
             onChange={(e) => setForm({ ...form, short: e.target.value })}
-            placeholder="MAT"
+            placeholder="МАТАН"
             maxLength={6}
           />
         </label>
 
         <label>
-          Преподаватель
+          Кафедра
           <input
             value={form.professor}
             onChange={(e) => setForm({ ...form, professor: e.target.value })}
             required
-            placeholder="Иванова Е.П."
+            placeholder="ИСиТ"
           />
         </label>
 
-        <fieldset>
-          <legend>Тип</legend>
-          <label className="radio">
-            <input
-              type="radio"
-              checked={form.type === 'exam'}
-              onChange={() => setForm({ ...form, type: 'exam' })}
-            />
-            экзамен
-          </label>
-          <label className="radio">
-            <input
-              type="radio"
-              checked={form.type === 'credit'}
-              onChange={() => setForm({ ...form, type: 'credit' })}
-            />
-            зачёт
-          </label>
-        </fieldset>
+        <label>
+          Тип
+          <select
+            value={form.type}
+            onChange={(e) =>
+              setForm({ ...form, type: e.target.value as AssessmentType })
+            }
+          >
+            {TYPE_OPTIONS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <fieldset>
           <legend>Кому нужно</legend>
