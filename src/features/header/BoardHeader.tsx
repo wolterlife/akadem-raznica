@@ -83,7 +83,7 @@ export function BoardHeader({
           </li>
           <li>
             <span className="legend__swatch legend__swatch--ideal" />
-            то же у D/M — предмет и препод
+            1 в 1 с D/M — предмет и препод
           </li>
           <li>
             <span className="legend__swatch legend__swatch--subject" />

@@ -37,7 +37,7 @@ export function getCardBadges(
   const badges: CardBadge[] = []
 
   if (match === 'ideal' && other) {
-    badges.push({ key: 'ideal', text: `то же у ${other}`, kind: 'ideal' })
+    badges.push({ key: 'ideal', text: `1 в 1 с ${other}`, kind: 'ideal' })
     return badges
   }
 
