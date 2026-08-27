@@ -237,6 +237,25 @@ export function buildAlignRows(
   )
 }
 
+/** Ordered cards for a column — pairs first, no empty spacer holes. */
+export function orderedColumnItems(
+  visible: Assessment[],
+  all: Assessment[],
+  sortKey: SortKey,
+  column: 'd' | 'm',
+): Assessment[] {
+  const rows = buildAlignRows(visible, all, sortKey)
+  const out: Assessment[] = []
+  const seen = new Set<string>()
+  for (const row of rows) {
+    const item = column === 'd' ? row.d : row.m
+    if (!item || seen.has(item.id)) continue
+    seen.add(item.id)
+    out.push(item)
+  }
+  return out
+}
+
 export function computeStats(items: Assessment[]) {
   const open = items.filter((i) => i.column !== 'done')
   return {
