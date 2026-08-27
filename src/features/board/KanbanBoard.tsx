@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -10,12 +10,11 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { COLUMNS } from '../../data'
-import { getMatchKind, getRelatedLinks, type LinkReason } from '../../sync'
+import { getMatchKind, getRelatedLinks } from '../../sync'
 import type { Assessment, ColumnId } from '../../types'
 import type { PresenceUser } from '../../presence'
 import { Card } from './Card'
 import { Column } from './Column'
-import { LinkArrows } from './LinkArrows'
 import {
   itemsByColumn,
   orderedColumnItems,
@@ -27,7 +26,6 @@ interface Props {
   visible: Assessment[]
   sortKey: SortKey
   hoveredId: string | null
-  hoveredCol: string | null
   onHoverChange: (id: string | null, col?: string | null) => void
   editorsByCard: Map<string, PresenceUser[]>
   onEdit: (item: Assessment) => void
@@ -44,16 +42,14 @@ export function KanbanBoard({
   visible,
   sortKey,
   hoveredId,
-  hoveredCol,
   onHoverChange,
   editorsByCard,
   onEdit,
   onMove,
 }: Props) {
-  const boardRef = useRef<HTMLDivElement>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   )
 
   const activeItem = useMemo(() => {
@@ -76,16 +72,6 @@ export function KanbanBoard({
     }
   }, [visible, items, sortKey])
 
-  const relatedMap = useMemo(() => {
-    const map = new Map<string, LinkReason[]>()
-    if (!relatedLinks || !hoveredId) return map
-    for (const [id, reasons] of relatedLinks) {
-      if (id === hoveredId) continue
-      map.set(id, reasons)
-    }
-    return map
-  }, [relatedLinks, hoveredId])
-
   function linkStateFor(id: string): 'idle' | 'focus' | 'related' | 'dim' {
     if (!relatedLinks) return 'idle'
     if (id === hoveredId) return 'focus'
@@ -102,12 +88,10 @@ export function KanbanBoard({
         dragId={dragId}
         colId={colId}
         item={item}
+        allItems={items}
         match={item.column === 'done' ? 'none' : getMatchKind(item, items)}
         editors={editorsByCard.get(item.id)}
         linkState={linkStateFor(item.id)}
-        linkReasons={
-          (relatedLinks?.get(item.id) as LinkReason[] | undefined) ?? []
-        }
         onHoverChange={onHoverChange}
         onEdit={onEdit}
       />
@@ -154,7 +138,7 @@ export function KanbanBoard({
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
-      <div className="board" ref={boardRef}>
+      <div className="board">
         {COLUMNS.map((col) => {
           const colItems = columnItems[col.id]
           return (
@@ -169,18 +153,13 @@ export function KanbanBoard({
             </Column>
           )
         })}
-        <LinkArrows
-          boardRef={boardRef}
-          hoveredId={hoveredId}
-          hoveredCol={hoveredCol}
-          related={relatedMap}
-        />
       </div>
 
       <DragOverlay>
         {activeItem ? (
           <Card
             item={activeItem}
+            allItems={items}
             match={getMatchKind(activeItem, items)}
             onEdit={() => {}}
           />

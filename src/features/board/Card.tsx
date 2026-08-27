@@ -1,47 +1,39 @@
-import type { MouseEvent, PointerEvent } from 'react'
+import { useRef, type MouseEvent, type PointerEvent, type TouchEvent } from 'react'
 import { useDraggable } from '@dnd-kit/core'
 import type { Assessment, MatchKind } from '../../types'
 import { TYPE_LABEL } from '../../types'
 import type { PresenceUser } from '../../presence'
-import type { LinkReason } from '../../sync'
+import { getCardBadges } from './badges'
 
 interface CardProps {
   item: Assessment
   match: MatchKind
+  allItems: Assessment[]
   onEdit: (item: Assessment) => void
   editors?: PresenceUser[]
   linkState?: 'idle' | 'focus' | 'related' | 'dim'
-  linkReasons?: LinkReason[]
   onHoverChange?: (id: string | null, col?: string | null) => void
-  /** Unique dnd id when the same card is shown in two columns */
   dragId?: string
   colId?: string
 }
 
-function reasonLabel(reasons: LinkReason[]) {
-  const hasShared = reasons.includes('shared')
-  const hasSubj = reasons.includes('subject')
-  const hasProf = reasons.includes('professor')
-  if (hasShared && hasSubj) return 'связь: тот же предмет · есть у обоих'
-  if (hasSubj && hasProf) return 'связь: предмет + препод'
-  if (hasSubj) return 'связь: тот же предмет'
-  if (hasProf) return 'связь: тот же препод'
-  return null
-}
+const LONG_PRESS_MS = 420
 
 export function Card({
   item,
   match,
+  allItems,
   onEdit,
   editors = [],
   linkState = 'idle',
-  linkReasons = [],
   onHoverChange,
   dragId,
   colId,
 }: CardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: dragId ?? item.id })
+  const pressTimer = useRef<number | null>(null)
+  const pressed = useRef(false)
 
   const style = transform
     ? {
@@ -53,8 +45,39 @@ export function Card({
     e.stopPropagation()
   }
 
-  const hoverLink = reasonLabel(linkReasons)
+  function clearPress() {
+    if (pressTimer.current != null) {
+      window.clearTimeout(pressTimer.current)
+      pressTimer.current = null
+    }
+  }
+
+  function onTouchStart(_e: TouchEvent) {
+    clearPress()
+    pressed.current = false
+    pressTimer.current = window.setTimeout(() => {
+      pressed.current = true
+      onHoverChange?.(item.id, colId)
+    }, LONG_PRESS_MS)
+  }
+
+  function onTouchEnd() {
+    clearPress()
+    if (pressed.current) {
+      // keep highlight briefly so user can see related cards
+      window.setTimeout(() => onHoverChange?.(null), 1600)
+      pressed.current = false
+    }
+  }
+
+  function onTouchCancel() {
+    clearPress()
+    pressed.current = false
+    onHoverChange?.(null)
+  }
+
   const both = item.owners.includes('D') && item.owners.includes('M')
+  const badges = getCardBadges(item, allItems)
 
   return (
     <article
@@ -67,6 +90,12 @@ export function Card({
       {...attributes}
       onMouseEnter={() => onHoverChange?.(item.id, colId)}
       onMouseLeave={() => onHoverChange?.(null)}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchCancel}
+      onContextMenu={(e) => {
+        if (pressed.current) e.preventDefault()
+      }}
     >
       {editors.length > 0 && (
         <div className="card__presence" aria-label="Сейчас редактируют">
@@ -115,31 +144,14 @@ export function Card({
         {item.professor.trim() || 'препод не указан'}
       </p>
 
-      {both && <p className="card__match card__match--shared">нужно D и M</p>}
-      {!both && match === 'ideal' && (
-        <p className="card__match card__match--ideal">
-          тот же предмет · тот же препод
-        </p>
-      )}
-      {!both && match === 'subject' && (
-        <p className="card__match card__match--subject">
-          общий предмет · разный препод
-        </p>
-      )}
-      {!both && match === 'professor' && (
-        <p className="card__match card__match--professor">общий преподаватель</p>
-      )}
-      {hoverLink && linkState === 'related' && (
-        <p className="card__match card__match--hover">{hoverLink}</p>
-      )}
-      {linkState === 'focus' && (
-        <p className="card__match card__match--hover">
-          {linkReasons.includes('shared')
-            ? 'есть у обоих · смотри связанные'
-            : linkReasons.length
-              ? 'смотри связанные'
-              : 'нет явных связей'}
-        </p>
+      {badges.length > 0 && (
+        <div className="card__badges">
+          {badges.map((b) => (
+            <span key={b.key} className={`badge badge--${b.kind}`}>
+              {b.text}
+            </span>
+          ))}
+        </div>
       )}
 
       {item.note && <p className="card__note">{item.note}</p>}

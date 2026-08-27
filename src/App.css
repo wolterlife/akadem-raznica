@@ -387,41 +387,6 @@
   min-height: 520px;
 }
 
-.link-arrows {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 30;
-  overflow: visible;
-}
-
-.link-arrows__line {
-  stroke: #b8d4ff;
-  stroke-width: 2;
-  stroke-linecap: round;
-  opacity: 0.9;
-}
-
-.link-arrows__head {
-  fill: #b8d4ff;
-  opacity: 0.9;
-}
-
-.link-arrows__hub-bg {
-  fill: #1a2230;
-  stroke: #b8d4ff;
-  stroke-width: 1.5;
-}
-
-.link-arrows__hub-text {
-  fill: #d6e6ff;
-  font-size: 11px;
-  font-weight: 700;
-  font-family: 'Bricolage Grotesque', sans-serif;
-}
-
 .column {
   display: flex;
   flex-direction: column;
@@ -516,36 +481,74 @@
 }
 
 .card--link-focus,
-.card--link-related,
-.card--link-related.card--shared-owners {
-  border: 2px solid #9ec0ff;
-  outline: 2px solid rgba(158, 192, 255, 0.45);
-  outline-offset: 2px;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.32);
+.card--link-related {
+  border-color: #9ec0ff;
+  box-shadow:
+    0 0 0 2px rgba(158, 192, 255, 0.45),
+    0 8px 18px rgba(0, 0, 0, 0.32);
   z-index: 1;
 }
 
 .card--link-focus {
-  outline-color: rgba(158, 192, 255, 0.7);
   z-index: 2;
 }
 
 .card--link-dim {
-  opacity: 0.28;
-  filter: grayscale(0.35);
-  pointer-events: none;
+  opacity: 0.35;
+  filter: grayscale(0.25);
 }
 
 .card--shared-owners {
   border-color: rgba(142, 180, 255, 0.28);
 }
 
-.card__match--shared {
-  color: #a8c9ff;
+.card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
 }
 
-.card__match--hover {
-  color: #ffd28a;
+.badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+.badge--both {
+  color: #d6e6ff;
+  background: rgba(142, 180, 255, 0.18);
+  border: 1px solid rgba(142, 180, 255, 0.35);
+}
+
+.badge--ideal {
+  color: #b8f0e0;
+  background: rgba(125, 211, 192, 0.16);
+  border: 1px solid rgba(125, 211, 192, 0.4);
+}
+
+.badge--subject {
+  color: #f0dfb0;
+  background: rgba(230, 192, 123, 0.14);
+  border: 1px solid rgba(230, 192, 123, 0.4);
+}
+
+.badge--professor {
+  color: #c5dcff;
+  background: rgba(106, 168, 255, 0.14);
+  border: 1px solid rgba(106, 168, 255, 0.4);
+}
+
+.badge--own-prof {
+  color: #c8c4d8;
+  background: rgba(180, 170, 200, 0.12);
+  border: 1px solid rgba(180, 170, 200, 0.28);
 }
 
 .legend {
@@ -723,24 +726,6 @@
   margin: 3px 0 0;
   color: var(--muted);
   font-size: 0.78rem;
-}
-
-.card__match {
-  margin: 5px 0 0;
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
-.card__match--ideal {
-  color: var(--ideal);
-}
-
-.card__match--subject {
-  color: #e6c07b;
-}
-
-.card__match--professor {
-  color: var(--professor);
 }
 
 .card__note {

@@ -79,19 +79,19 @@ export function BoardHeader({
         <ul className="legend" aria-label="Как читать доску">
           <li>
             <span className="legend__swatch legend__swatch--shared" />
-            D+M = нужно обоим
+            D+M — нужно обоим
           </li>
           <li>
             <span className="legend__swatch legend__swatch--ideal" />
-            Идеал = предмет + препод
+            то же у D/M — предмет и препод
           </li>
           <li>
             <span className="legend__swatch legend__swatch--subject" />
-            Общий предмет = разный препод
+            предмет у D/M — разный препод
           </li>
           <li>
             <span className="legend__swatch legend__swatch--prof" />
-            Общий препод = разные предметы
+            препод у D/M — другие предметы
           </li>
         </ul>
         {shared && online.length > 0 && (

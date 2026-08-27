@@ -39,7 +39,7 @@ export default function App() {
   const [profFilter, setProfFilter] = useState('all')
   const [sortKey, setSortKey] = useState<SortKey>('links')
 
-  const { hoveredId, hoveredCol, onCardHover } = useCardHover()
+  const { hoveredId, onCardHover } = useCardHover()
   const { identity, setIdentity, online, editorsByCard, renameSelf } =
     usePresenceSession(shared, editing?.id ?? null)
 
@@ -95,7 +95,6 @@ export default function App() {
         visible={visible}
         sortKey={sortKey}
         hoveredId={hoveredId}
-        hoveredCol={hoveredCol}
         onHoverChange={onCardHover}
         editorsByCard={editorsByCard}
         onEdit={setEditing}
@@ -103,7 +102,7 @@ export default function App() {
       />
 
       <p className="hint">
-        Ховер: без прыжков списка · подсветка + подпись «связь: …»
+        Наведи или удержи палец — подсветятся связанные карточки
         {shared ? ' · синк 15с' : ''}
       </p>
 
