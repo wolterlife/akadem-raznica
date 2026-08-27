@@ -155,6 +155,21 @@
   gap: 6px;
 }
 
+.name-gate__choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.name-gate__pick {
+  min-height: 56px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
 .card--busy {
   border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 }
