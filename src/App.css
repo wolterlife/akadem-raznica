@@ -371,7 +371,7 @@
   min-height: 520px;
   border-radius: 22px;
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(23, 27, 37, 0.95), rgba(14, 16, 22, 0.92));
+  background: linear-gradient(180deg, rgba(16, 19, 28, 0.96), rgba(11, 13, 18, 0.94));
   box-shadow: var(--shadow);
   overflow: hidden;
   transition: border-color 0.2s ease, transform 0.25s ease;
@@ -422,8 +422,8 @@
 .column__list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 6px 10px 14px;
+  gap: 12px;
+  padding: 8px 10px 14px;
   flex: 1;
 }
 
@@ -431,12 +431,12 @@
   position: relative;
   touch-action: none;
   cursor: grab;
-  border: 1px solid rgba(232, 236, 244, 0.08);
+  border: 1px solid rgba(232, 236, 244, 0.14);
   border-radius: 12px;
   padding: 8px 34px 26px 10px;
-  background: linear-gradient(160deg, #1e2432, #171b25 70%);
+  background: #232936;
   color: var(--card-ink);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 18px rgba(0, 0, 0, 0.28);
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   animation: rise 0.45s ease both;
 }
@@ -453,9 +453,9 @@
 }
 
 .card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(142, 180, 255, 0.3);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.32);
+  transform: translateY(-1px);
+  border-color: rgba(142, 180, 255, 0.35);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 22px rgba(0, 0, 0, 0.34);
 }
 
 .card--dragging {
@@ -463,11 +463,19 @@
 }
 
 .card.match-ideal {
-  outline: 2px solid rgba(125, 211, 192, 0.75);
+  border-color: rgba(125, 211, 192, 0.45);
+  box-shadow:
+    inset 3px 0 0 #7dd3c0,
+    0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 .card.match-professor {
-  outline: 2px dashed rgba(106, 168, 255, 0.85);
+  border-color: rgba(106, 168, 255, 0.4);
+  box-shadow:
+    inset 3px 0 0 #6aa8ff,
+    0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 .card__edit {
@@ -477,14 +485,27 @@
   z-index: 2;
   width: 24px;
   height: 24px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(232, 236, 244, 0.12);
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  border: 1px solid rgba(232, 236, 244, 0.14);
   border-radius: 7px;
-  background: rgba(11, 13, 18, 0.65);
+  background: rgba(11, 13, 18, 0.55);
   color: var(--muted);
   cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.card__edit svg {
+  display: block;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  /* path в иконке визуально сидит выше */
+  transform: translateY(1px);
 }
 
 .card__edit:hover {
