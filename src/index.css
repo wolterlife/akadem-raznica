@@ -1,22 +1,24 @@
 :root {
   color-scheme: dark;
-  --bg: #07110e;
-  --bg-2: #0d1f18;
-  --panel: #12261e;
-  --card: #f3f6f2;
-  --card-ink: #102018;
-  --muted: #8aa396;
-  --line: rgba(200, 245, 66, 0.18);
-  --accent: #c8f542;
-  --accent-2: #3dffa8;
-  --exam: #ff6b4a;
-  --credit: #3db8ff;
+  --bg: #0b0d12;
+  --bg-2: #12151d;
+  --panel: #171b25;
+  --card: #1a1f2b;
+  --card-ink: #e8ecf4;
+  --muted: #8b93a7;
+  --line: rgba(232, 236, 244, 0.1);
+  --accent: #f0a35a;
+  --accent-soft: rgba(240, 163, 90, 0.16);
+  --exam: #ff7a63;
+  --credit: #6aa8ff;
   --danger: #ff5a6a;
-  --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  --ideal: #7dd3c0;
+  --professor: #6aa8ff;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
   font-family: Figtree, system-ui, sans-serif;
   line-height: 1.4;
   font-weight: 500;
-  color: #e8f2eb;
+  color: #e8ecf4;
   background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -37,9 +39,9 @@ body,
 body {
   min-width: 320px;
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(61, 255, 168, 0.12), transparent 55%),
-    radial-gradient(900px 500px at 90% 0%, rgba(200, 245, 66, 0.1), transparent 50%),
-    linear-gradient(160deg, var(--bg), var(--bg-2) 55%, #08140f);
+    radial-gradient(1000px 520px at 8% -8%, rgba(240, 163, 90, 0.1), transparent 55%),
+    radial-gradient(800px 480px at 92% 0%, rgba(106, 168, 255, 0.08), transparent 50%),
+    linear-gradient(165deg, #0b0d12, #10131a 50%, #0c0e14);
 }
 
 button,

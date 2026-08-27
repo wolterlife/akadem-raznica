@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, MouseEvent, PointerEvent } from 'react'
 import { useDraggable, useDroppable } from '@dnd-kit/core'
 import type { Assessment, MatchKind } from '../types'
 
@@ -18,6 +18,10 @@ export function Card({ item, match, onEdit }: CardProps) {
       }
     : undefined
 
+  function stopDrag(e: PointerEvent | MouseEvent) {
+    e.stopPropagation()
+  }
+
   return (
     <article
       ref={setNodeRef}
@@ -25,8 +29,27 @@ export function Card({ item, match, onEdit }: CardProps) {
       className={`card ${isDragging ? 'card--dragging' : ''} match-${match}`}
       {...listeners}
       {...attributes}
-      onDoubleClick={() => onEdit(item)}
     >
+      <button
+        type="button"
+        className="card__edit"
+        aria-label="Редактировать"
+        title="Редактировать"
+        onPointerDown={stopDrag}
+        onMouseDown={stopDrag}
+        onClick={(e) => {
+          e.stopPropagation()
+          onEdit(item)
+        }}
+      >
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden>
+          <path
+            fill="currentColor"
+            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92l8.06-8.06.92.92L5.92 19.58zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+          />
+        </svg>
+      </button>
+
       <header className="card__head">
         <span className="card__short">{item.short}</span>
         <span className={`card__type card__type--${item.type}`}>
@@ -40,7 +63,7 @@ export function Card({ item, match, onEdit }: CardProps) {
       {match !== 'none' && (
         <p className={`card__match card__match--${match}`}>
           {match === 'ideal'
-            ? 'общий предмет + препод'
+            ? 'общий предмет и преподаватель'
             : 'общий преподаватель'}
         </p>
       )}
@@ -50,7 +73,7 @@ export function Card({ item, match, onEdit }: CardProps) {
       <footer className="card__owners">
         {item.owners.map((o) => (
           <span key={o} className={`owner owner--${o}`}>
-            {o === 'D' ? 'Д' : 'M'}
+            {o}
           </span>
         ))}
       </footer>

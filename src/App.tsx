@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -10,22 +10,76 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { COLUMNS, SEED } from './data'
-import { getMatchKind, loadAssessments, saveAssessments } from './storage'
+import {
+  getMatchKind,
+  isSyncConfigured,
+  loadLocal,
+  pushBoard,
+  saveLocal,
+  subscribeBoard,
+  type SyncStatus,
+} from './sync'
 import type { Assessment, ColumnId } from './types'
 import { Card, Column } from './components/BoardParts'
 import { CardForm } from './components/CardForm'
 import './App.css'
 
 export default function App() {
-  const [items, setItems] = useState<Assessment[]>(() => loadAssessments(SEED))
+  const shared = isSyncConfigured()
+  const [items, setItems] = useState<Assessment[]>(() =>
+    shared ? [] : loadLocal(SEED),
+  )
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(
+    shared ? 'connecting' : 'local',
+  )
   const [editing, setEditing] = useState<Assessment | null>(null)
   const [creating, setCreating] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [filter, setFilter] = useState<'all' | 'ideal' | 'professor'>('all')
+  const readyRef = useRef(!shared)
+  const skipPushRef = useRef(false)
 
   useEffect(() => {
-    saveAssessments(items)
-  }, [items])
+    if (!shared) return
+
+    const unsub = subscribeBoard(
+      (remote) => {
+        skipPushRef.current = true
+        if (remote == null) {
+          setItems(SEED)
+          void pushBoard(SEED).finally(() => {
+            readyRef.current = true
+            setSyncStatus('shared')
+          })
+        } else {
+          setItems(remote)
+          readyRef.current = true
+          setSyncStatus('shared')
+        }
+      },
+      () => setSyncStatus('error'),
+    )
+
+    return () => unsub?.()
+  }, [shared])
+
+  useEffect(() => {
+    if (!readyRef.current) return
+    if (skipPushRef.current) {
+      skipPushRef.current = false
+      return
+    }
+
+    if (!shared) {
+      saveLocal(items)
+      return
+    }
+
+    const t = window.setTimeout(() => {
+      void pushBoard(items).catch(() => setSyncStatus('error'))
+    }, 200)
+    return () => window.clearTimeout(t)
+  }, [items, shared])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -100,9 +154,20 @@ export default function App() {
   const stats = useMemo(() => {
     const open = items.filter((i) => i.column !== 'done')
     const ideal = open.filter((i) => getMatchKind(i, items) === 'ideal').length
-    const professor = open.filter((i) => getMatchKind(i, items) === 'professor').length
+    const professor = open.filter(
+      (i) => getMatchKind(i, items) === 'professor',
+    ).length
     return { open: open.length, ideal, professor, done: items.length - open.length }
   }, [items])
+
+  const statusLabel =
+    syncStatus === 'shared'
+      ? 'общая доска · онлайн'
+      : syncStatus === 'connecting'
+        ? 'подключение…'
+        : syncStatus === 'error'
+          ? 'ошибка синка'
+          : 'локально · только этот браузер'
 
   return (
     <div className="app">
@@ -112,9 +177,10 @@ export default function App() {
           <p className="brand__mark">академ-разница</p>
           <h1>Канбан сдач</h1>
           <p className="brand__lead">
-            Д и M закрывают разницу. Ищем пересечения: один предмет + один препод —
-            лучший сценарий сдавать вместе.
+            D и M закрывают разницу. Ищем пересечения: один предмет и один
+            преподаватель — лучше сдавать вместе.
           </p>
+          <p className={`sync-badge sync-badge--${syncStatus}`}>{statusLabel}</p>
         </div>
 
         <div className="top__side">
@@ -129,7 +195,7 @@ export default function App() {
             </div>
             <div>
               <strong>{stats.professor}</strong>
-              <span>общий препод</span>
+              <span>общий преп.</span>
             </div>
             <div>
               <strong>{stats.done}</strong>
@@ -158,7 +224,7 @@ export default function App() {
                 onClick={() => setFilter('professor')}
                 type="button"
               >
-                общий препод
+                общий преп.
               </button>
             </div>
             <button className="btn btn--ghost" type="button" onClick={resetDemo}>
@@ -216,8 +282,10 @@ export default function App() {
       </DndContext>
 
       <p className="hint">
-        Перетаскивай карточки между колонками · двойной клик — редактировать · данные
-        хранятся в браузере
+        Перетаскивай карточки · двойной клик — редактировать
+        {shared
+          ? ' · изменения видны всем сразу'
+          : ' · пока локально (нужен Firebase)'}
       </p>
 
       {(creating || editing) && (

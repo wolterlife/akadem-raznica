@@ -1,7 +1,7 @@
 import type { Assessment, ColumnDef } from './types'
 
 export const COLUMNS: ColumnDef[] = [
-  { id: 'd', title: 'Д', subtitle: 'личная разница' },
+  { id: 'd', title: 'D', subtitle: 'личная разница' },
   { id: 'm', title: 'M', subtitle: 'личная разница' },
   { id: 'shared', title: 'Общие', subtitle: 'сдавать вместе' },
   { id: 'done', title: 'Done', subtitle: 'закрыто' },
@@ -35,7 +35,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['M'],
     column: 'm',
-    note: 'общий препод с PROG у Д',
+    note: 'общий преподаватель с PROG у D',
   },
   {
     id: '4',

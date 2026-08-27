@@ -11,7 +11,7 @@
   inset: 0 auto auto 0;
   width: 420px;
   height: 420px;
-  background: radial-gradient(circle, rgba(200, 245, 66, 0.16), transparent 70%);
+  background: radial-gradient(circle, rgba(240, 163, 90, 0.14), transparent 70%);
   filter: blur(10px);
   animation: drift 12s ease-in-out infinite alternate;
 }
@@ -58,6 +58,39 @@
   font-size: 1.02rem;
 }
 
+.sync-badge {
+  display: inline-block;
+  margin: 12px 0 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--line);
+}
+
+.sync-badge--shared {
+  color: #1a1208;
+  background: var(--accent);
+  border-color: transparent;
+}
+
+.sync-badge--connecting {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.sync-badge--local {
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.sync-badge--error {
+  color: #fff;
+  background: var(--danger);
+  border-color: transparent;
+}
+
 .top__side {
   display: flex;
   flex-direction: column;
@@ -72,7 +105,7 @@
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: rgba(18, 38, 30, 0.7);
+  background: rgba(23, 27, 37, 0.85);
   backdrop-filter: blur(8px);
 }
 
@@ -108,7 +141,7 @@
   gap: 6px;
   padding: 4px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--line);
 }
 
@@ -128,7 +161,7 @@
 
 .chip--on {
   background: var(--accent);
-  color: #102018;
+  color: #1a1208;
   font-weight: 700;
 }
 
@@ -146,14 +179,14 @@
 
 .btn--primary {
   background: var(--accent);
-  color: #102018;
+  color: #1a1208;
   font-weight: 700;
 }
 
 .btn--ghost {
   background: transparent;
   border-color: var(--line);
-  color: #d8ebe0;
+  color: #d7dce8;
 }
 
 .btn--danger {
@@ -176,7 +209,7 @@
   min-height: 520px;
   border-radius: 22px;
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, rgba(18, 38, 30, 0.92), rgba(10, 22, 17, 0.88));
+  background: linear-gradient(180deg, rgba(23, 27, 37, 0.95), rgba(14, 16, 22, 0.92));
   box-shadow: var(--shadow);
   overflow: hidden;
   transition: border-color 0.2s ease, transform 0.25s ease;
@@ -188,7 +221,7 @@
 }
 
 .column--done {
-  background: linear-gradient(180deg, rgba(20, 28, 24, 0.95), rgba(8, 14, 11, 0.9));
+  background: linear-gradient(180deg, rgba(18, 20, 28, 0.96), rgba(10, 11, 16, 0.94));
 }
 
 .column__head {
@@ -218,7 +251,7 @@
   display: grid;
   place-items: center;
   border-radius: 9px;
-  background: rgba(200, 245, 66, 0.12);
+  background: var(--accent-soft);
   color: var(--accent);
   font-weight: 700;
   font-size: 0.85rem;
@@ -236,13 +269,13 @@
   position: relative;
   touch-action: none;
   cursor: grab;
-  border: 0;
+  border: 1px solid rgba(232, 236, 244, 0.08);
   border-radius: 16px;
-  padding: 12px 12px 36px;
-  background: var(--card);
+  padding: 12px 40px 36px 12px;
+  background: linear-gradient(160deg, #1e2432, #171b25 70%);
   color: var(--card-ink);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   animation: rise 0.45s ease both;
 }
 
@@ -259,7 +292,8 @@
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.22);
+  border-color: rgba(240, 163, 90, 0.28);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.36);
 }
 
 .card--dragging {
@@ -267,11 +301,34 @@
 }
 
 .card.match-ideal {
-  outline: 2px solid rgba(61, 255, 168, 0.85);
+  outline: 2px solid rgba(125, 211, 192, 0.75);
 }
 
 .card.match-professor {
-  outline: 2px dashed rgba(61, 184, 255, 0.9);
+  outline: 2px dashed rgba(106, 168, 255, 0.85);
+}
+
+.card__edit {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(232, 236, 244, 0.12);
+  border-radius: 8px;
+  background: rgba(11, 13, 18, 0.65);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.card__edit:hover {
+  color: var(--accent);
+  border-color: rgba(240, 163, 90, 0.45);
+  background: rgba(240, 163, 90, 0.12);
 }
 
 .card__head {
@@ -280,6 +337,7 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 8px;
+  padding-right: 4px;
 }
 
 .card__short {
@@ -288,7 +346,7 @@
   min-width: 46px;
   padding: 6px 8px;
   border-radius: 10px;
-  background: #102018;
+  background: rgba(0, 0, 0, 0.35);
   color: var(--accent);
   font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 700;
@@ -306,13 +364,13 @@
 }
 
 .card__type--exam {
-  background: rgba(255, 107, 74, 0.18);
-  color: #c24120;
+  background: rgba(255, 122, 99, 0.16);
+  color: #ffb0a2;
 }
 
 .card__type--credit {
-  background: rgba(61, 184, 255, 0.18);
-  color: #0b6f9e;
+  background: rgba(106, 168, 255, 0.16);
+  color: #a8c9ff;
 }
 
 .card__subject {
@@ -325,7 +383,7 @@
 
 .card__prof {
   margin: 6px 0 0;
-  color: #4a6357;
+  color: var(--muted);
   font-size: 0.9rem;
 }
 
@@ -336,16 +394,16 @@
 }
 
 .card__match--ideal {
-  color: #0f7a52;
+  color: var(--ideal);
 }
 
 .card__match--professor {
-  color: #0b6f9e;
+  color: var(--professor);
 }
 
 .card__note {
   margin: 8px 0 0;
-  color: #61786c;
+  color: #9aa3b5;
   font-size: 0.8rem;
 }
 
@@ -365,16 +423,15 @@
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 800;
-  background: #102018;
   color: #fff;
 }
 
 .owner--D {
-  background: #1f3d30;
+  background: #3a455c;
 }
 
 .owner--M {
-  background: #24485a;
+  background: #2f4f6e;
 }
 
 .hint {
@@ -391,7 +448,7 @@
   display: grid;
   place-items: center;
   padding: 20px;
-  background: rgba(4, 10, 8, 0.72);
+  background: rgba(6, 8, 12, 0.78);
   backdrop-filter: blur(6px);
   animation: fade 0.2s ease;
 }
@@ -412,7 +469,7 @@
   gap: 12px;
   padding: 22px;
   border-radius: 20px;
-  background: #12261e;
+  background: #171b25;
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
   animation: pop 0.25s ease;
@@ -459,8 +516,8 @@
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px 12px;
-  background: rgba(0, 0, 0, 0.25);
-  color: #eef7f1;
+  background: rgba(0, 0, 0, 0.3);
+  color: #e8ecf4;
 }
 
 .modal fieldset {
@@ -480,7 +537,7 @@
   flex-direction: row !important;
   align-items: center;
   gap: 8px !important;
-  color: #e8f2eb !important;
+  color: #e8ecf4 !important;
   cursor: pointer;
 }
 

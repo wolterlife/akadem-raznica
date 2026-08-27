@@ -1,6 +1,6 @@
 import { useEffect, useId, useState, type FormEvent } from 'react'
 import type { Assessment, AssessmentType, Owner } from '../types'
-import { uid } from '../storage'
+import { uid } from '../sync'
 
 interface FormProps {
   initial?: Assessment | null
@@ -159,7 +159,7 @@ export function CardForm({ initial, onClose, onSave, onDelete }: FormProps) {
               checked={form.owners.includes('D')}
               onChange={() => toggleOwner('D')}
             />
-            Д
+            D
           </label>
           <label className="check">
             <input
