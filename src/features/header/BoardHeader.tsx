@@ -9,6 +9,7 @@ import type {
 interface Stats {
   open: number
   ideal: number
+  alike: number
   subject: number
   professor: number
   done: number
@@ -79,11 +80,15 @@ export function BoardHeader({
         <ul className="legend" aria-label="Как читать доску">
           <li>
             <span className="legend__swatch legend__swatch--shared" />
-            D+M — нужно обоим
+            D+M — одна сдача на двоих
           </li>
           <li>
             <span className="legend__swatch legend__swatch--ideal" />
-            1 в 1 с D/M — предмет и препод
+            1 в 1 — предмет, препод и тип
+          </li>
+          <li>
+            <span className="legend__swatch legend__swatch--alike" />
+            предмет+препод — другой тип сдачи
           </li>
           <li>
             <span className="legend__swatch legend__swatch--subject" />
@@ -126,15 +131,19 @@ export function BoardHeader({
           </div>
           <div>
             <strong>{stats.ideal}</strong>
-            <span>идеал</span>
+            <span>1 в 1</span>
+          </div>
+          <div>
+            <strong>{stats.alike}</strong>
+            <span>почти</span>
           </div>
           <div>
             <strong>{stats.subject}</strong>
-            <span>общ. предм.</span>
+            <span>предмет</span>
           </div>
           <div>
             <strong>{stats.professor}</strong>
-            <span>общ. преп.</span>
+            <span>препод</span>
           </div>
           <div>
             <strong>{stats.done}</strong>
@@ -156,7 +165,14 @@ export function BoardHeader({
               onClick={() => onMatchFilter('ideal')}
               type="button"
             >
-              идеал
+              1 в 1
+            </button>
+            <button
+              className={matchFilter === 'alike' ? 'chip chip--on' : 'chip'}
+              onClick={() => onMatchFilter('alike')}
+              type="button"
+            >
+              почти
             </button>
             <button
               className={matchFilter === 'subject' ? 'chip chip--on' : 'chip'}

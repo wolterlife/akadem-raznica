@@ -4,6 +4,7 @@ import { getMatchKind, normalize, profKey } from '../../sync'
 export type BadgeKind =
   | 'both'
   | 'ideal'
+  | 'alike'
   | 'subject'
   | 'professor'
   | 'own-prof'
@@ -38,6 +39,15 @@ export function getCardBadges(
 
   if (match === 'ideal' && other) {
     badges.push({ key: 'ideal', text: `1 в 1 с ${other}`, kind: 'ideal' })
+    return badges
+  }
+
+  if (match === 'alike' && other) {
+    badges.push({
+      key: 'alike',
+      text: `предмет+препод у ${other}`,
+      kind: 'alike',
+    })
     return badges
   }
 

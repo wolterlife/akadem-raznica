@@ -7,7 +7,7 @@ export type AssessmentType =
   | 'course_project'
   | 'practice'
 export type ColumnId = 'd' | 'm' | 'done'
-export type MatchKind = 'ideal' | 'subject' | 'professor' | 'none'
+export type MatchKind = 'ideal' | 'alike' | 'subject' | 'professor' | 'none'
 
 export interface Assessment {
   id: string

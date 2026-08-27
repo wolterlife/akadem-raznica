@@ -207,7 +207,7 @@
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   padding: 12px;
   border: 1px solid var(--line);
@@ -480,22 +480,29 @@
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 22px rgba(0, 0, 0, 0.34);
 }
 
-.card--link-focus,
-.card--link-related {
-  border-color: #9ec0ff;
+.card--link-focus {
+  border-color: #d4e4ff;
+  background: linear-gradient(165deg, #2e3a4f 0%, #243044 100%);
   box-shadow:
-    0 0 0 2px rgba(158, 192, 255, 0.45),
-    0 8px 18px rgba(0, 0, 0, 0.32);
-  z-index: 1;
+    0 0 0 2px rgba(180, 210, 255, 0.95),
+    0 0 28px rgba(142, 180, 255, 0.4),
+    0 14px 30px rgba(0, 0, 0, 0.45);
+  z-index: 3;
 }
 
-.card--link-focus {
+.card--link-related {
+  border-color: #b4cffc;
+  background: linear-gradient(165deg, #2a3448 0%, #222b3c 100%);
+  box-shadow:
+    0 0 0 2px rgba(158, 192, 255, 0.7),
+    0 0 20px rgba(142, 180, 255, 0.28),
+    0 10px 24px rgba(0, 0, 0, 0.4);
   z-index: 2;
 }
 
 .card--link-dim {
-  opacity: 0.35;
-  filter: grayscale(0.25);
+  opacity: 0.22;
+  filter: grayscale(0.35) brightness(0.85);
 }
 
 .card--shared-owners {
@@ -531,6 +538,12 @@
   color: #b8f0e0;
   background: rgba(125, 211, 192, 0.16);
   border: 1px solid rgba(125, 211, 192, 0.4);
+}
+
+.badge--alike {
+  color: #d4f0c8;
+  background: rgba(160, 210, 140, 0.14);
+  border: 1px solid rgba(160, 210, 140, 0.4);
 }
 
 .badge--subject {
@@ -583,6 +596,10 @@
   background: #7dd3c0;
 }
 
+.legend__swatch--alike {
+  background: #9fd48a;
+}
+
 .legend__swatch--subject {
   background: #e6c07b;
 }
@@ -598,6 +615,15 @@
   box-shadow:
     inset 4px 0 0 #7dd3c0,
     0 0 0 1px rgba(125, 211, 192, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.card.match-alike {
+  border-color: #9fd48a;
+  box-shadow:
+    inset 4px 0 0 #9fd48a,
+    0 0 0 1px rgba(159, 212, 138, 0.35),
     0 1px 0 rgba(255, 255, 255, 0.04),
     0 8px 18px rgba(0, 0, 0, 0.28);
 }

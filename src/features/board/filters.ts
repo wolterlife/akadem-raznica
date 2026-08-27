@@ -6,7 +6,8 @@ import {
   profKey,
 } from '../../sync'
 
-export type MatchFilter = 'all' | 'ideal' | 'subject' | 'professor'
+export type MatchFilter = 'all' | 'ideal' | 'alike' | 'subject' | 'professor'
+
 export type TypeFilter = 'all' | 'exam' | 'credits' | AssessmentType
 export type SortKey = 'subject' | 'type' | 'prof' | 'links'
 
@@ -54,9 +55,10 @@ function matchRank(item: Assessment, all: Assessment[]) {
   if (item.column === 'done') return 4
   const kind = getMatchKind(item, all)
   if (kind === 'ideal') return 0
-  if (kind === 'subject') return 1
-  if (kind === 'professor') return 2
-  return 3
+  if (kind === 'alike') return 1
+  if (kind === 'subject') return 2
+  if (kind === 'professor') return 3
+  return 4
 }
 
 function compareItems(
@@ -151,7 +153,15 @@ function rowSortKey(row: AlignRow, all: Assessment[]) {
   if (row.d && row.m) {
     const kind = getMatchKind(row.d, all)
     const rank =
-      kind === 'ideal' ? 1 : kind === 'subject' ? 2 : kind === 'professor' ? 3 : 4
+      kind === 'ideal'
+        ? 1
+        : kind === 'alike'
+          ? 2
+          : kind === 'subject'
+            ? 3
+            : kind === 'professor'
+              ? 4
+              : 5
     return `${rank}:${linkGroupKey(sample)}`
   }
   return `9:${sample.subject}`
@@ -261,6 +271,7 @@ export function computeStats(items: Assessment[]) {
   return {
     open: open.length,
     ideal: open.filter((i) => getMatchKind(i, items) === 'ideal').length,
+    alike: open.filter((i) => getMatchKind(i, items) === 'alike').length,
     subject: open.filter((i) => getMatchKind(i, items) === 'subject').length,
     professor: open.filter((i) => getMatchKind(i, items) === 'professor')
       .length,

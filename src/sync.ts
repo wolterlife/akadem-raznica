@@ -78,7 +78,8 @@ export function boardsEqual(a: Assessment[], b: Assessment[]) {
 export { isSyncConfigured }
 
 /**
- * ideal — одна карточка на D+M, или один предмет + один препод у обоих
+ * ideal — полное совпадение: предмет + тип + препод (или одна карточка D+M)
+ * alike — тот же предмет и препод, но другой тип сдачи
  * subject — один предмет, разные преподы
  * professor — разные предметы, общий преподаватель
  */
@@ -102,11 +103,15 @@ export function getMatchKind(
   })
 
   if (subjectPeers.length) {
-    const sameProf = subjectPeers.some((a) => {
-      const otherProf = profKey(a.professor)
-      return prof == null || otherProf == null || otherProf === prof
-    })
-    if (sameProf) return 'ideal'
+    if (prof) {
+      const perfect = subjectPeers.some(
+        (a) => a.type === card.type && profKey(a.professor) === prof,
+      )
+      if (perfect) return 'ideal'
+
+      const alike = subjectPeers.some((a) => profKey(a.professor) === prof)
+      if (alike) return 'alike'
+    }
     return 'subject'
   }
 
