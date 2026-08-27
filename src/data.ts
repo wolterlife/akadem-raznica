@@ -1,0 +1,76 @@
+import type { Assessment, ColumnDef } from './types'
+
+export const COLUMNS: ColumnDef[] = [
+  { id: 'd', title: 'Д', subtitle: 'личная разница' },
+  { id: 'm', title: 'M', subtitle: 'личная разница' },
+  { id: 'shared', title: 'Общие', subtitle: 'сдавать вместе' },
+  { id: 'done', title: 'Done', subtitle: 'закрыто' },
+]
+
+export const SEED: Assessment[] = [
+  {
+    id: '1',
+    subject: 'Математический анализ',
+    short: 'MAT',
+    professor: 'Иванова Е.П.',
+    type: 'exam',
+    owners: ['D', 'M'],
+    column: 'shared',
+    note: 'идеально: один предмет + один препод',
+  },
+  {
+    id: '2',
+    subject: 'Программирование',
+    short: 'PROG',
+    professor: 'Смирнов А.В.',
+    type: 'exam',
+    owners: ['D'],
+    column: 'd',
+  },
+  {
+    id: '3',
+    subject: 'Базы данных',
+    short: 'БД',
+    professor: 'Смирнов А.В.',
+    type: 'credit',
+    owners: ['M'],
+    column: 'm',
+    note: 'общий препод с PROG у Д',
+  },
+  {
+    id: '4',
+    subject: 'Философия',
+    short: 'ФИЛ',
+    professor: 'Козлова Н.И.',
+    type: 'credit',
+    owners: ['D', 'M'],
+    column: 'shared',
+  },
+  {
+    id: '5',
+    subject: 'Английский язык',
+    short: 'ENG',
+    professor: 'Brown J.',
+    type: 'credit',
+    owners: ['D'],
+    column: 'd',
+  },
+  {
+    id: '6',
+    subject: 'Теория вероятностей',
+    short: 'ТВ',
+    professor: 'Петров Д.С.',
+    type: 'exam',
+    owners: ['M'],
+    column: 'm',
+  },
+  {
+    id: '7',
+    subject: 'История',
+    short: 'ИСТ',
+    professor: 'Сидорова М.А.',
+    type: 'credit',
+    owners: ['D'],
+    column: 'done',
+  },
+]
