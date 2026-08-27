@@ -9,9 +9,18 @@ interface CardProps {
   match: MatchKind
   onEdit: (item: Assessment) => void
   editors?: PresenceUser[]
+  linkState?: 'idle' | 'focus' | 'related' | 'dim'
+  onHoverChange?: (id: string | null) => void
 }
 
-export function Card({ item, match, onEdit, editors = [] }: CardProps) {
+export function Card({
+  item,
+  match,
+  onEdit,
+  editors = [],
+  linkState = 'idle',
+  onHoverChange,
+}: CardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: item.id })
 
@@ -29,9 +38,11 @@ export function Card({ item, match, onEdit, editors = [] }: CardProps) {
     <article
       ref={setNodeRef}
       style={style}
-      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} match-${match}`}
+      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} match-${match} card--link-${linkState}`}
       {...listeners}
       {...attributes}
+      onMouseEnter={() => onHoverChange?.(item.id)}
+      onMouseLeave={() => onHoverChange?.(null)}
     >
       {editors.length > 0 && (
         <div className="card__presence" aria-label="Сейчас редактируют">

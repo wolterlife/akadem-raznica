@@ -14,7 +14,9 @@ import {
   PULL_INTERVAL_MS,
   boardsEqual,
   getMatchKind,
+  getRelatedIds,
   isSyncConfigured,
+  linkGroupKey,
   loadLocal,
   pullBoard,
   pushBoard,
@@ -58,7 +60,10 @@ export default function App() {
     'all',
   )
   const [profFilter, setProfFilter] = useState('all')
-  const [sortKey, setSortKey] = useState<'subject' | 'type' | 'prof'>('subject')
+  const [sortKey, setSortKey] = useState<'subject' | 'type' | 'prof' | 'links'>(
+    'links',
+  )
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
   const readyRef = useRef(!shared)
   const skipPushRef = useRef(false)
   const itemsRef = useRef(items)
@@ -207,6 +212,10 @@ export default function App() {
     ]
 
     return [...filtered].sort((a, b) => {
+      if (sortKey === 'links') {
+        const diff = linkGroupKey(a).localeCompare(linkGroupKey(b), 'ru')
+        if (diff !== 0) return diff
+      }
       if (sortKey === 'type') {
         const diff =
           typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type)
@@ -220,9 +229,25 @@ export default function App() {
     })
   }, [items, matchFilter, typeFilter, profFilter, sortKey])
 
+  const relatedIds = useMemo(() => {
+    if (!hoveredId) return null
+    const card = items.find((i) => i.id === hoveredId)
+    if (!card) return null
+    return getRelatedIds(card, items)
+  }, [hoveredId, items])
+
   const byColumn = useCallback(
-    (column: ColumnId) => visible.filter((i) => i.column === column),
-    [visible],
+    (column: ColumnId) => {
+      const list = visible.filter((i) => i.column === column)
+      if (!relatedIds) return list
+      return [...list].sort((a, b) => {
+        const ar = relatedIds.has(a.id) ? 0 : 1
+        const br = relatedIds.has(b.id) ? 0 : 1
+        if (ar !== br) return ar - br
+        return 0
+      })
+    },
+    [visible, relatedIds],
   )
 
   function onDragStart(event: DragStartEvent) {
@@ -430,6 +455,7 @@ export default function App() {
                   setSortKey(e.target.value as typeof sortKey)
                 }
               >
+                <option value="links">по связям</option>
                 <option value="subject">по предмету</option>
                 <option value="type">по типу</option>
                 <option value="prof">по преподу</option>
@@ -499,6 +525,16 @@ export default function App() {
                     item.column === 'done' ? 'none' : getMatchKind(item, items)
                   }
                   editors={editorsByCard.get(item.id)}
+                  linkState={
+                    !relatedIds
+                      ? 'idle'
+                      : item.id === hoveredId
+                        ? 'focus'
+                        : relatedIds.has(item.id)
+                          ? 'related'
+                          : 'dim'
+                  }
+                  onHoverChange={setHoveredId}
                   onEdit={setEditing}
                 />
               ))}
@@ -518,10 +554,9 @@ export default function App() {
       </DndContext>
 
       <p className="hint">
-        Перетаскивай карточки · карандаш — редактировать
-        {shared
-          ? ' · синк 15с · онлайн и ✎ на карточке видны другим'
-          : ' · пока локально (нужен Firebase)'}
+        Ховер по карточке подсветит связи (предмет / препод) и поднимет их в
+        колонке
+        {shared ? ' · синк 15с · ✎ на карточке видны другим' : ''}
       </p>
 
       {(creating || editing) && (

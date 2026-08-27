@@ -479,8 +479,27 @@
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), 0 10px 22px rgba(0, 0, 0, 0.34);
 }
 
-.card--dragging {
-  opacity: 0.55;
+.card--link-focus {
+  border-color: rgba(142, 180, 255, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(142, 180, 255, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.04),
+    0 10px 22px rgba(0, 0, 0, 0.34);
+  z-index: 2;
+}
+
+.card--link-related {
+  border-color: rgba(125, 211, 192, 0.55);
+  box-shadow:
+    inset 3px 0 0 #7dd3c0,
+    0 0 0 1px rgba(125, 211, 192, 0.25),
+    0 8px 18px rgba(0, 0, 0, 0.28);
+  z-index: 1;
+}
+
+.card--link-dim {
+  opacity: 0.28;
+  filter: grayscale(0.35);
 }
 
 .card.match-ideal {

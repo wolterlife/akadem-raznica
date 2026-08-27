@@ -112,6 +112,30 @@ export function getMatchKind(
   return 'none'
 }
 
+/** Группа для сортировки «по связям»: препод → иначе предмет */
+export function linkGroupKey(card: Assessment): string {
+  const prof = profKey(card.professor)
+  if (prof) return `p:${prof}`
+  return `s:${normalize(card.subject)}`
+}
+
+export function areCardsLinked(a: Assessment, b: Assessment): boolean {
+  if (a.id === b.id) return true
+  if (normalize(a.subject) === normalize(b.subject)) return true
+  const pa = profKey(a.professor)
+  const pb = profKey(b.professor)
+  if (pa && pb && pa === pb) return true
+  return false
+}
+
+export function getRelatedIds(card: Assessment, all: Assessment[]): Set<string> {
+  const ids = new Set<string>([card.id])
+  for (const other of all) {
+    if (areCardsLinked(card, other)) ids.add(other.id)
+  }
+  return ids
+}
+
 function normalize(value: string) {
   return value.trim().toLowerCase()
 }
