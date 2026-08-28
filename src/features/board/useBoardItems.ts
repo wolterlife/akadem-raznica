@@ -11,6 +11,7 @@ import {
   type SyncStatus,
 } from '../../sync'
 import type { Assessment, ColumnId } from '../../types'
+import { applyMove } from './progress'
 
 export function useBoardItems() {
   const shared = isSyncConfigured()
@@ -96,9 +97,11 @@ export function useBoardItems() {
     return () => window.clearTimeout(t)
   }, [items, shared])
 
-  function moveToColumn(id: string, column: ColumnId) {
+  function moveToColumn(id: string, column: ColumnId, fromColumn?: ColumnId) {
     setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, column } : item)),
+      prev.map((item) =>
+        item.id === id ? applyMove(item, column, fromColumn) : item,
+      ),
     )
   }
 

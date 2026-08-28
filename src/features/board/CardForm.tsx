@@ -3,6 +3,7 @@ import type { Assessment, AssessmentType, Owner } from '../../types'
 import { TYPE_LABEL } from '../../types'
 import { uid } from '../../sync'
 import { Combobox } from './Combobox'
+import { notesPayload } from './progress'
 
 interface FormProps {
   initial?: Assessment | null
@@ -19,10 +20,30 @@ const empty = {
   professor: '',
   type: 'exam' as AssessmentType,
   owners: ['D'] as Owner[],
-  note: '',
+  noteD: '',
+  noteM: '',
 }
 
 const TYPE_OPTIONS = Object.entries(TYPE_LABEL) as [AssessmentType, string][]
+
+function initialForm(initial?: Assessment | null) {
+  if (!initial) return empty
+  const noteD =
+    initial.notes?.D ??
+    (initial.owners.includes('D') ? (initial.note ?? '') : '')
+  const noteM =
+    initial.notes?.M ??
+    (initial.owners.includes('M') ? (initial.note ?? '') : '')
+  return {
+    subject: initial.subject,
+    short: initial.short,
+    professor: initial.professor,
+    type: initial.type,
+    owners: [...initial.owners] as Owner[],
+    noteD,
+    noteM,
+  }
+}
 
 export function CardForm({
   initial,
@@ -34,18 +55,9 @@ export function CardForm({
 }: FormProps) {
   const titleId = useId()
   const closeOnBackdrop = useRef(false)
-  const [form, setForm] = useState(() =>
-    initial
-      ? {
-          subject: initial.subject,
-          short: initial.short,
-          professor: initial.professor,
-          type: initial.type,
-          owners: [...initial.owners] as Owner[],
-          note: initial.note ?? '',
-        }
-      : empty,
-  )
+  const [form, setForm] = useState(() => initialForm(initial))
+
+  const both = form.owners.includes('D') && form.owners.includes('M')
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -68,11 +80,12 @@ export function CardForm({
     setForm((prev) => {
       const has = prev.owners.includes(owner)
       if (has && prev.owners.length === 1) return prev
+      const owners = has
+        ? prev.owners.filter((o) => o !== owner)
+        : [...prev.owners, owner]
       return {
         ...prev,
-        owners: has
-          ? prev.owners.filter((o) => o !== owner)
-          : [...prev.owners, owner],
+        owners,
       }
     })
   }
@@ -92,14 +105,13 @@ export function CardForm({
         .toUpperCase()
 
     const owners = [...form.owners].sort() as Owner[]
+    const doneBy = (initial?.doneBy ?? []).filter((o) => owners.includes(o))
     const column =
-      initial?.column === 'done'
-        ? 'done'
-        : initial?.column === 'd' || initial?.column === 'm'
-          ? initial.column
-          : owners.includes('D')
-            ? 'd'
-            : 'm'
+      initial?.column && owners.includes(initial.column === 'm' ? 'M' : 'D')
+        ? initial.column
+        : owners.includes('D')
+          ? 'd'
+          : 'm'
 
     onSave({
       id: initial?.id ?? uid(),
@@ -108,8 +120,9 @@ export function CardForm({
       professor: form.professor.trim(),
       type: form.type,
       owners,
-      column,
-      note: form.note.trim() || undefined,
+      column: initial?.column === 'done' ? 'done' : column,
+      doneBy,
+      ...notesPayload(owners, form.noteD, form.noteM),
     })
   }
 
@@ -128,7 +141,10 @@ export function CardForm({
         aria-labelledby={titleId}
       >
         <h2 id={titleId}>{initial ? 'Редактировать' : 'Новая карточка'}</h2>
-        <p className="modal__hint">1 позиция из листа = 1 карточка</p>
+        <p className="modal__hint">
+          Если предмет нужен обоим — отметь D и M. Каждый закрывает его из
+          своего столбца переносом в Done.
+        </p>
 
         <Combobox
           label="Предмет"
@@ -193,14 +209,42 @@ export function CardForm({
           </label>
         </fieldset>
 
-        <label>
-          Заметка
-          <input
-            value={form.note}
-            onChange={(e) => setForm({ ...form, note: e.target.value })}
-            placeholder="опционально"
-          />
-        </label>
+        {both ? (
+          <>
+            <label>
+              Заметка D
+              <textarea
+                rows={3}
+                value={form.noteD}
+                onChange={(e) => setForm({ ...form, noteD: e.target.value })}
+                placeholder="условия сдачи для D"
+              />
+            </label>
+            <label>
+              Заметка M
+              <textarea
+                rows={3}
+                value={form.noteM}
+                onChange={(e) => setForm({ ...form, noteM: e.target.value })}
+                placeholder="условия сдачи для M"
+              />
+            </label>
+          </>
+        ) : (
+          <label>
+            Заметка
+            <textarea
+              rows={3}
+              value={form.owners.includes('M') ? form.noteM : form.noteD}
+              onChange={(e) =>
+                form.owners.includes('M')
+                  ? setForm({ ...form, noteM: e.target.value })
+                  : setForm({ ...form, noteD: e.target.value })
+              }
+              placeholder="условия сдачи, несколько строк"
+            />
+          </label>
+        )}
 
         <div className="modal__actions">
           {initial && onDelete && (

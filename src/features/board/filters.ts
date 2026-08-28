@@ -5,6 +5,7 @@ import {
   normalize,
   profKey,
 } from '../../sync'
+import { isFullyDone, isOpenFor } from './progress'
 
 export type MatchFilter = 'all' | 'ideal' | 'alike' | 'subject' | 'professor'
 
@@ -16,6 +17,7 @@ export interface BoardFilters {
   typeFilter: TypeFilter
   profFilter: string
   sortKey: SortKey
+  query: string
 }
 
 export interface AlignRow {
@@ -52,7 +54,7 @@ export function listProfessors(items: Assessment[]): string[] {
 }
 
 function matchRank(item: Assessment, all: Assessment[]) {
-  if (item.column === 'done') return 4
+  if (isFullyDone(item)) return 4
   const kind = getMatchKind(item, all)
   if (kind === 'ideal') return 0
   if (kind === 'alike') return 1
@@ -84,15 +86,25 @@ function compareItems(
   return a.subject.localeCompare(b.subject, 'ru')
 }
 
+export function matchesQuery(item: Assessment, query: string) {
+  const q = normalize(query)
+  if (!q) return true
+  return [item.subject, item.short, item.professor].some((value) =>
+    normalize(value).includes(q),
+  )
+}
+
 export function filterAndSortItems(
   items: Assessment[],
   filters: BoardFilters,
 ): Assessment[] {
-  const { matchFilter, typeFilter, profFilter, sortKey } = filters
+  const { matchFilter, typeFilter, profFilter, sortKey, query } = filters
 
   const filtered = items.filter((item) => {
+    if (!matchesQuery(item, query)) return false
+
     if (matchFilter !== 'all') {
-      if (item.column === 'done') return true
+      if (isFullyDone(item)) return true
       if (getMatchKind(item, items) !== matchFilter) return false
     }
 
@@ -129,13 +141,15 @@ export function itemsByColumn(
   column: ColumnId,
 ): Assessment[] {
   if (column === 'done') {
-    return items.filter((i) => i.column === 'done')
+    return items.filter((item) => isFullyDone(item))
   }
-  return items.filter((i) => {
-    if (i.column === 'done') return false
-    const both = i.owners.includes('D') && i.owners.includes('M')
-    if (both) return true
-    return i.column === column
+  const owner = column === 'd' ? 'D' : 'M'
+  return items.filter((item) => {
+    if (isFullyDone(item)) return false
+    if (item.owners.includes('D') && item.owners.includes('M')) {
+      return isOpenFor(item, owner)
+    }
+    return item.column === column
   })
 }
 
@@ -267,7 +281,7 @@ export function orderedColumnItems(
 }
 
 export function computeStats(items: Assessment[]) {
-  const open = items.filter((i) => i.column !== 'done')
+  const open = items.filter((i) => !isFullyDone(i))
   return {
     open: open.length,
     ideal: open.filter((i) => getMatchKind(i, items) === 'ideal').length,

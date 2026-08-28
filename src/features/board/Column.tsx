@@ -14,6 +14,7 @@ export function Column({ id, title, subtitle, children, count }: ColumnProps) {
 
   return (
     <section
+      id={`col-${id}`}
       ref={setNodeRef}
       className={`column column--${id} ${isOver ? 'column--over' : ''}`}
     >

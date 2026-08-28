@@ -12,8 +12,8 @@
   --exam: #ff7a63;
   --credit: #6aa8ff;
   --danger: #ff5a6a;
-  --ideal: #7dd3c0;
-  --professor: #6aa8ff;
+  --ideal: #3dd68c;
+  --match-partial: #e8b84a;
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
   --on-accent: #0b1020;
   font-family: Figtree, system-ui, sans-serif;
@@ -28,6 +28,10 @@
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
@@ -46,6 +50,8 @@ body {
 }
 
 button,
-input {
+input,
+textarea,
+select {
   font: inherit;
 }

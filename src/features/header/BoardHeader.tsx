@@ -26,11 +26,13 @@ interface Props {
   typeFilter: TypeFilter
   profFilter: string
   sortKey: SortKey
+  query: string
   refreshing: boolean
   onMatchFilter: (v: MatchFilter) => void
   onTypeFilter: (v: TypeFilter) => void
   onProfFilter: (v: string) => void
   onSortKey: (v: SortKey) => void
+  onQuery: (v: string) => void
   onResetDemo: () => void
   onRenameSelf: () => void
   onRefresh: () => void
@@ -55,11 +57,13 @@ export function BoardHeader({
   typeFilter,
   profFilter,
   sortKey,
+  query,
   refreshing,
   onMatchFilter,
   onTypeFilter,
   onProfFilter,
   onSortKey,
+  onQuery,
   onResetDemo,
   onRenameSelf,
   onRefresh,
@@ -71,32 +75,30 @@ export function BoardHeader({
         <p className="brand__mark">академ-разница</p>
         <h1>Канбан сдач</h1>
         <p className="brand__lead">
-          D и M закрывают разницу. Карточка с галочками D+M нужна обоим.
-          Ховер подсветит тот же предмет или того же препода.
+          D и M закрывают разницу. Один и тот же предмет может зачесться у
+          одного и остаться у другого. Заметки — персональные.
         </p>
         <p className={`sync-badge sync-badge--${syncStatus}`}>
           {statusLabel(syncStatus)}
         </p>
         <ul className="legend" aria-label="Как читать доску">
-          <li>
-            <span className="legend__swatch legend__swatch--shared" />
-            D+M — одна сдача на двоих
-          </li>
+          <li className="legend__head">между D и M</li>
           <li>
             <span className="legend__swatch legend__swatch--ideal" />
-            1 в 1 — предмет, препод и тип
+            полное совпадение
           </li>
           <li>
-            <span className="legend__swatch legend__swatch--alike" />
-            предмет+препод — другой тип сдачи
-          </li>
-          <li>
-            <span className="legend__swatch legend__swatch--subject" />
-            предмет у D/M — разный препод
+            <span className="legend__swatch legend__swatch--partial" />
+            частичное
           </li>
           <li>
             <span className="legend__swatch legend__swatch--prof" />
-            препод у D/M — другие предметы
+            тот же преподаватель
+          </li>
+          <li className="legend__head">у одного</li>
+          <li>
+            <span className="legend__swatch legend__swatch--internal" />
+            ещё предметы этого преподавателя
           </li>
         </ul>
         {shared && online.length > 0 && (
@@ -152,6 +154,17 @@ export function BoardHeader({
         </div>
 
         <div className="toolbar">
+          <label className="search">
+            <span>поиск</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => onQuery(e.target.value)}
+              placeholder="предмет, код, преподаватель…"
+              autoComplete="off"
+            />
+          </label>
+
           <div className="filters" role="group" aria-label="Фильтр совпадений">
             <button
               className={matchFilter === 'all' ? 'chip chip--on' : 'chip'}

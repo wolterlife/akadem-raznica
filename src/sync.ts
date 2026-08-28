@@ -1,5 +1,6 @@
 import { get, ref, set } from 'firebase/database'
 import { getDb, isSyncConfigured } from './firebase'
+import { doneOwnersOf, isFullyDone } from './features/board/progress'
 import type { Assessment } from './types'
 
 const BOARD_PATH = 'board'
@@ -29,10 +30,19 @@ function parseBoard(val: unknown): Assessment[] | null {
 /** Legacy column `shared` → personal column (keep D+M owners). */
 export function normalizeBoard(items: Assessment[]): Assessment[] {
   return items.map((item) => {
-    if ((item.column as string) === 'shared') {
-      return { ...item, column: 'd' }
+    const next: Assessment = { ...item }
+    if ((next.column as string) === 'shared') next.column = 'd'
+    if (next.column === 'done' && (!next.doneBy || next.doneBy.length === 0)) {
+      next.doneBy = [...next.owners]
+    } else if (next.doneBy) {
+      next.doneBy = doneOwnersOf(next)
     }
-    return item
+    if (next.note && !next.notes) {
+      const notes: NonNullable<Assessment['notes']> = {}
+      for (const owner of next.owners) notes[owner] = next.note
+      next.notes = notes
+    }
+    return next
   })
 }
 
@@ -91,7 +101,7 @@ export function getMatchKind(
     return 'ideal'
   }
 
-  const others = all.filter((a) => a.id !== card.id && a.column !== 'done')
+  const others = all.filter((a) => a.id !== card.id && !isFullyDone(a))
   const subj = normalize(card.subject)
   const prof = profKey(card.professor)
 

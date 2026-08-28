@@ -38,6 +38,7 @@ export default function App() {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
   const [profFilter, setProfFilter] = useState('all')
   const [sortKey, setSortKey] = useState<SortKey>('links')
+  const [query, setQuery] = useState('')
 
   const { hoveredId, onCardHover } = useCardHover()
   const { identity, setIdentity, online, editorsByCard, renameSelf } =
@@ -52,8 +53,9 @@ export default function App() {
         typeFilter,
         profFilter,
         sortKey,
+        query,
       }),
-    [items, matchFilter, typeFilter, profFilter, sortKey],
+    [items, matchFilter, typeFilter, profFilter, sortKey, query],
   )
   const stats = useMemo(() => computeStats(items), [items])
 
@@ -79,11 +81,13 @@ export default function App() {
         typeFilter={typeFilter}
         profFilter={profFilter}
         sortKey={sortKey}
+        query={query}
         refreshing={refreshing}
         onMatchFilter={setMatchFilter}
         onTypeFilter={setTypeFilter}
         onProfFilter={setProfFilter}
         onSortKey={setSortKey}
+        onQuery={setQuery}
         onResetDemo={resetDemo}
         onRenameSelf={renameSelf}
         onRefresh={() => void refreshFromDb()}
@@ -102,7 +106,8 @@ export default function App() {
       />
 
       <p className="hint">
-        Наведи или удержи палец — подсветятся связанные карточки
+        Наведи или удержи палец — подсветятся связанные карточки. Перенос из
+        своего столбца в Done закрывает предмет только у тебя.
         {shared ? ' · синк 15с' : ''}
       </p>
 

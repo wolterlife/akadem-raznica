@@ -2,10 +2,13 @@ import { useMemo, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   closestCorners,
+  pointerWithin,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core'
@@ -20,6 +23,7 @@ import {
   orderedColumnItems,
   type SortKey,
 } from './filters'
+import { isFullyDone } from './progress'
 
 interface Props {
   items: Assessment[]
@@ -29,12 +33,31 @@ interface Props {
   onHoverChange: (id: string | null, col?: string | null) => void
   editorsByCard: Map<string, PresenceUser[]>
   onEdit: (item: Assessment) => void
-  onMove: (id: string, column: ColumnId) => void
+  onMove: (id: string, column: ColumnId, fromColumn?: ColumnId) => void
 }
 
-function parseCardId(dragId: string) {
+const COLUMN_IDS: ColumnId[] = ['d', 'm', 'done']
+
+/** Prefer the column under the pointer so Done isn't stolen by a card in M. */
+const columnFirstCollision: CollisionDetection = (args) => {
+  const hits = pointerWithin(args)
+  const done = hits.find((hit) => String(hit.id) === 'done')
+  if (done) return [done]
+  const column = hits.find((hit) =>
+    COLUMN_IDS.includes(String(hit.id) as ColumnId),
+  )
+  if (column) return [column]
+  if (hits.length) return hits
+  return closestCorners(args)
+}
+
+function parseDrag(dragId: string): { id: string; col?: ColumnId } {
   const sep = dragId.indexOf('::')
-  return sep >= 0 ? dragId.slice(0, sep) : dragId
+  if (sep < 0) return { id: dragId }
+  return {
+    id: dragId.slice(0, sep),
+    col: dragId.slice(sep + 2) as ColumnId,
+  }
 }
 
 export function KanbanBoard({
@@ -49,12 +72,15 @@ export function KanbanBoard({
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 220, tolerance: 10 },
+    }),
   )
 
   const activeItem = useMemo(() => {
     if (!activeId) return null
-    return items.find((i) => i.id === parseCardId(activeId)) ?? null
+    return items.find((i) => i.id === parseDrag(activeId).id) ?? null
   }, [items, activeId])
 
   const relatedLinks = useMemo(() => {
@@ -80,8 +106,7 @@ export function KanbanBoard({
   }
 
   function renderCard(item: Assessment, colId: ColumnId) {
-    const both = item.owners.includes('D') && item.owners.includes('M')
-    const dragId = both && colId !== 'done' ? `${item.id}::${colId}` : item.id
+    const dragId = `${item.id}::${colId}`
     return (
       <Card
         key={dragId}
@@ -89,7 +114,7 @@ export function KanbanBoard({
         colId={colId}
         item={item}
         allItems={items}
-        match={item.column === 'done' ? 'none' : getMatchKind(item, items)}
+        match={isFullyDone(item) ? 'none' : getMatchKind(item, items)}
         editors={editorsByCard.get(item.id)}
         linkState={linkStateFor(item.id)}
         onHoverChange={onHoverChange}
@@ -103,41 +128,48 @@ export function KanbanBoard({
   }
 
   function onDragEnd(event: DragEndEvent) {
+    const from = activeId ? parseDrag(activeId).col : undefined
     setActiveId(null)
     const { active, over } = event
     if (!over) return
 
     const overId = String(over.id)
-    const columnIds = COLUMNS.map((c) => c.id)
+    const columnIds = COLUMN_IDS
     let targetColumn: ColumnId | null = null
 
     if (columnIds.includes(overId as ColumnId)) {
       targetColumn = overId as ColumnId
     } else {
-      const overCard = items.find((i) => i.id === parseCardId(overId))
+      const parsed = parseDrag(overId)
+      const overCard = items.find((i) => i.id === parsed.id)
       if (overCard) {
-        const sep = overId.indexOf('::')
-        if (sep >= 0) {
-          const col = overId.slice(sep + 2) as ColumnId
-          if (columnIds.includes(col)) targetColumn = col
-          else targetColumn = overCard.column
-        } else {
-          targetColumn = overCard.column
-        }
+        if (parsed.col && columnIds.includes(parsed.col)) targetColumn = parsed.col
+        else targetColumn = overCard.column
       }
     }
 
     if (!targetColumn) return
-    onMove(parseCardId(String(active.id)), targetColumn)
+    const dragged = parseDrag(String(active.id))
+    onMove(dragged.id, targetColumn, dragged.col ?? from)
   }
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={columnFirstCollision}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      autoScroll={{ threshold: { x: 0.12, y: 0.18 } }}
     >
+      <nav className="board-jump" aria-label="Перейти к колонке">
+        {COLUMNS.map((col) => (
+          <a key={col.id} href={`#col-${col.id}`}>
+            {col.title}
+            <span>{columnItems[col.id].length}</span>
+          </a>
+        ))}
+      </nav>
+
       <div className="board">
         {COLUMNS.map((col) => {
           const colItems = columnItems[col.id]

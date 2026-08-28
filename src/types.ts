@@ -18,7 +18,12 @@ export interface Assessment {
   type: AssessmentType
   owners: Owner[]
   column: ColumnId
+  /** @deprecated личная заметка — `notes` */
   note?: string
+  /** Заметки и условия сдачи у каждого свои */
+  notes?: Partial<Record<Owner, string>>
+  /** Кто закрыл: заполняется переносом из своего столбца в Done */
+  doneBy?: Owner[]
 }
 
 export interface ColumnDef {

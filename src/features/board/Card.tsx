@@ -1,9 +1,10 @@
 import { useRef, type MouseEvent, type PointerEvent, type TouchEvent } from 'react'
 import { useDraggable } from '@dnd-kit/core'
-import type { Assessment, MatchKind } from '../../types'
+import type { Assessment, ColumnId, MatchKind, Owner } from '../../types'
 import { TYPE_LABEL } from '../../types'
 import type { PresenceUser } from '../../presence'
-import { getCardBadges } from './badges'
+import { getCardBadges, listCardRelations, relationCaption } from './badges'
+import { columnOwner, isDoneFor, isFullyDone, noteFor } from './progress'
 
 interface CardProps {
   item: Assessment
@@ -14,10 +15,14 @@ interface CardProps {
   linkState?: 'idle' | 'focus' | 'related' | 'dim'
   onHoverChange?: (id: string | null, col?: string | null) => void
   dragId?: string
-  colId?: string
+  colId?: ColumnId
 }
 
 const LONG_PRESS_MS = 420
+
+function viewOwner(colId?: ColumnId): Owner | null {
+  return colId ? columnOwner(colId) : null
+}
 
 export function Card({
   item,
@@ -41,7 +46,7 @@ export function Card({
       }
     : undefined
 
-  function stopDrag(e: PointerEvent | MouseEvent) {
+  function stopDrag(e: PointerEvent | MouseEvent | TouchEvent) {
     e.stopPropagation()
   }
 
@@ -64,7 +69,6 @@ export function Card({
   function onTouchEnd() {
     clearPress()
     if (pressed.current) {
-      // keep highlight briefly so user can see related cards
       window.setTimeout(() => onHoverChange?.(null), 1600)
       pressed.current = false
     }
@@ -77,7 +81,20 @@ export function Card({
   }
 
   const both = item.owners.includes('D') && item.owners.includes('M')
-  const badges = getCardBadges(item, allItems)
+  const owner = viewOwner(colId)
+  const done = isFullyDone(item)
+  const badges = getCardBadges(item, allItems, owner)
+  const matchBadge = badges.find((b) => b.scope === 'external')
+  const internal = badges.filter((b) => b.scope === 'internal')
+  const internalRelations = done
+    ? []
+    : listCardRelations(item, allItems, owner)
+  const showInternal =
+    !done && (internal.length > 0 || internalRelations.length > 0)
+  const personalNote = noteFor(item, owner)
+  const showBothNotes = colId === 'done' || (!owner && both)
+  const noteD = noteFor(item, 'D')
+  const noteM = noteFor(item, 'M')
 
   return (
     <article
@@ -85,7 +102,7 @@ export function Card({
       style={style}
       data-card-id={item.id}
       data-col={colId}
-      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} ${both ? 'card--shared-owners' : ''} match-${match} card--link-${linkState}`}
+      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} ${both ? 'card--shared-owners' : ''} ${done ? 'card--in-done' : ''} match-${match} card--link-${linkState}`}
       {...listeners}
       {...attributes}
       onMouseEnter={() => onHoverChange?.(item.id, colId)}
@@ -119,6 +136,7 @@ export function Card({
         title="Редактировать"
         onPointerDown={stopDrag}
         onMouseDown={stopDrag}
+        onTouchStart={stopDrag}
         onClick={(e) => {
           e.stopPropagation()
           onEdit(item)
@@ -144,21 +162,69 @@ export function Card({
         {item.professor.trim() || 'препод не указан'}
       </p>
 
-      {badges.length > 0 && (
-        <div className="card__badges">
-          {badges.map((b) => (
-            <span key={b.key} className={`badge badge--${b.kind}`}>
-              {b.text}
-            </span>
-          ))}
+      {matchBadge && (
+        <div className="card__group">
+          <p className="card__group-label">между D и M</p>
+          <p
+            className={`card__match ${
+              matchBadge.kind === 'ideal'
+                ? 'card__match--full'
+                : matchBadge.kind === 'professor'
+                  ? 'card__match--prof'
+                  : 'card__match--partial'
+            }`}
+          >
+            {matchBadge.text}
+          </p>
         </div>
       )}
 
-      {item.note && <p className="card__note">{item.note}</p>}
+      {showInternal ? (
+        <div className="card__group">
+          <p className="card__group-label">
+            {owner ? `у ${owner}` : `у ${item.owners[0]}`}
+          </p>
+          {internal.map((b) => (
+            <p key={b.key} className="card__match card__match--internal">
+              {b.text}
+            </p>
+          ))}
+          {internalRelations.map((rel) => {
+            const cap = relationCaption(item, rel)
+            return (
+              <p key={rel.id} className="card__match card__match--internal">
+                {cap.title ? `${cap.title} · ${cap.why}` : cap.why}
+              </p>
+            )
+          })}
+        </div>
+      ) : null}
+
+      {showBothNotes ? (
+        <>
+          {noteD ? (
+            <p className="card__note">
+              <span className="card__note-who">D</span>
+              {noteD}
+            </p>
+          ) : null}
+          {noteM ? (
+            <p className="card__note">
+              <span className="card__note-who">M</span>
+              {noteM}
+            </p>
+          ) : null}
+        </>
+      ) : (
+        personalNote && <p className="card__note">{personalNote}</p>
+      )}
 
       <footer className="card__owners">
         {item.owners.map((o) => (
-          <span key={o} className={`owner owner--${o}`}>
+          <span
+            key={o}
+            className={`owner owner--${o} ${owner === o ? 'owner--here' : ''} ${isDoneFor(item, o) ? 'owner--done' : ''}`}
+          >
             {o}
           </span>
         ))}

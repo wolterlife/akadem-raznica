@@ -62,7 +62,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['D', 'M'],
     column: 'd',
-    note: 'у D — заяв',
+    notes: { D: 'заяв' },
   },
   {
     id: 's7',
@@ -72,7 +72,7 @@ export const SEED: Assessment[] = [
     type: 'exam',
     owners: ['D', 'M'],
     column: 'd',
-    note: 'у D — заяв',
+    notes: { D: 'заяв' },
   },
   {
     id: 's8',
@@ -129,7 +129,7 @@ export const SEED: Assessment[] = [
     type: 'practice',
     owners: ['D'],
     column: 'd',
-    note: 'дифф.зачёт (практика)',
+    notes: { D: 'дифф.зачёт (практика)' },
   },
   {
     id: 'd11',
@@ -184,7 +184,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['D'],
     column: 'd',
-    note: 'заяв',
+    notes: { D: 'заяв' },
   },
   {
     id: 'd18',
@@ -194,7 +194,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['D'],
     column: 'd',
-    note: 'заяв',
+    notes: { D: 'заяв' },
   },
   {
     id: 'd19',
@@ -204,7 +204,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['D'],
     column: 'd',
-    note: 'заяв',
+    notes: { D: 'заяв' },
   },
   {
     id: 'd21',
@@ -214,7 +214,7 @@ export const SEED: Assessment[] = [
     type: 'exam',
     owners: ['D'],
     column: 'd',
-    note: 'заяв',
+    notes: { D: 'заяв' },
   },
   {
     id: 'd22',
@@ -224,7 +224,7 @@ export const SEED: Assessment[] = [
     type: 'exam',
     owners: ['D'],
     column: 'd',
-    note: 'заяв · экзамен (отдельно от курс.пр.)',
+    notes: { D: 'заяв · экзамен (отдельно от курс.пр.)' },
   },
   {
     id: 'd24',
@@ -234,7 +234,7 @@ export const SEED: Assessment[] = [
     type: 'exam',
     owners: ['D'],
     column: 'd',
-    note: 'заяв',
+    notes: { D: 'заяв' },
   },
 
   // —— только M ——
@@ -246,7 +246,7 @@ export const SEED: Assessment[] = [
     type: 'exam',
     owners: ['M'],
     column: 'm',
-    note: 'черновик M',
+    notes: { M: 'черновик M' },
   },
   {
     id: 'm2',
@@ -256,7 +256,7 @@ export const SEED: Assessment[] = [
     type: 'exam',
     owners: ['M'],
     column: 'm',
-    note: 'черновик M',
+    notes: { M: 'черновик M' },
   },
   {
     id: 'm3',
@@ -266,7 +266,7 @@ export const SEED: Assessment[] = [
     type: 'diff_credit',
     owners: ['M'],
     column: 'm',
-    note: 'черновик M · тот же предмет, другой препод',
+    notes: { M: 'черновик M · тот же предмет, другой препод' },
   },
   {
     id: 'm4',
@@ -276,7 +276,7 @@ export const SEED: Assessment[] = [
     type: 'exam',
     owners: ['M'],
     column: 'm',
-    note: 'черновик M',
+    notes: { M: 'черновик M' },
   },
   {
     id: 'm5',
@@ -286,7 +286,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['M'],
     column: 'm',
-    note: 'черновик M',
+    notes: { M: 'черновик M' },
   },
   {
     id: 'm6',
@@ -296,7 +296,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['M'],
     column: 'm',
-    note: 'черновик M',
+    notes: { M: 'черновик M' },
   },
   {
     id: 'm7',
@@ -306,6 +306,6 @@ export const SEED: Assessment[] = [
     type: 'exam',
     owners: ['M'],
     column: 'm',
-    note: 'черновик M',
+    notes: { M: 'черновик M' },
   },
 ]
