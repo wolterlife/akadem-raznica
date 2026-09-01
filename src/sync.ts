@@ -69,16 +69,35 @@ export async function pullBoard(): Promise<Assessment[] | null> {
   return parseBoard(snap.val())
 }
 
+/** Firebase RTDB throws if any nested field is `undefined`. */
+function stripUndefined<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripUndefined(item)) as T
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [key, nested] of Object.entries(value)) {
+      if (nested === undefined) continue
+      out[key] = stripUndefined(nested)
+    }
+    return out as T
+  }
+  return value
+}
+
 export async function pushBoard(items: Assessment[]): Promise<void> {
   const db = getDb()
   if (!db) {
     saveLocal(items)
     return
   }
-  await set(ref(db, BOARD_PATH), {
-    items,
-    updatedAt: Date.now(),
-  } satisfies BoardPayload)
+  await set(
+    ref(db, BOARD_PATH),
+    stripUndefined({
+      items,
+      updatedAt: Date.now(),
+    } satisfies BoardPayload),
+  )
 }
 
 export function boardsEqual(a: Assessment[], b: Assessment[]) {

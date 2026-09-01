@@ -54,14 +54,11 @@ export function notesPayload(
   owners: Owner[],
   noteD: string,
   noteM: string,
-): Pick<Assessment, 'note' | 'notes'> {
+): Pick<Assessment, 'notes'> {
   const notes: NonNullable<Assessment['notes']> = {}
   if (owners.includes('D') && noteD.trim()) notes.D = noteD.trim()
   if (owners.includes('M') && noteM.trim()) notes.M = noteM.trim()
-  return {
-    notes: Object.keys(notes).length ? notes : undefined,
-    note: undefined,
-  }
+  return Object.keys(notes).length ? { notes } : {}
 }
 
 /** Move a card between columns. Shared cards credit/uncredit per person. */

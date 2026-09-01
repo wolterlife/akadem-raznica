@@ -50,7 +50,8 @@ export function useBoardItems() {
     setRefreshing(true)
     try {
       await applyRemote(false)
-    } catch {
+    } catch (err) {
+      console.error('[sync] refresh failed', err)
       setSyncStatus('error')
     } finally {
       setRefreshing(false)
@@ -64,13 +65,17 @@ export function useBoardItems() {
     void (async () => {
       try {
         if (!cancelled) await applyRemote(true)
-      } catch {
+      } catch (err) {
+        console.error('[sync] initial pull failed', err)
         if (!cancelled) setSyncStatus('error')
       }
     })()
 
     const id = window.setInterval(() => {
-      void applyRemote(false).catch(() => setSyncStatus('error'))
+      void applyRemote(false).catch((err) => {
+        console.error('[sync] pull failed', err)
+        setSyncStatus('error')
+      })
     }, PULL_INTERVAL_MS)
 
     return () => {
@@ -92,7 +97,10 @@ export function useBoardItems() {
     }
 
     const t = window.setTimeout(() => {
-      void pushBoard(items).catch(() => setSyncStatus('error'))
+      void pushBoard(items).catch((err) => {
+        console.error('[sync] push failed', err)
+        setSyncStatus('error')
+      })
     }, 200)
     return () => window.clearTimeout(t)
   }, [items, shared])
