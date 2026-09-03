@@ -220,14 +220,27 @@ export function Card({
       )}
 
       <footer className="card__owners">
-        {item.owners.map((o) => (
-          <span
-            key={o}
-            className={`owner owner--${o} ${owner === o ? 'owner--here' : ''} ${isDoneFor(item, o) ? 'owner--done' : ''}`}
-          >
-            {o}
-          </span>
-        ))}
+        {item.owners.map((o) => {
+          const closed = isDoneFor(item, o)
+          return (
+            <span
+              key={o}
+              className={`owner owner--${o} ${owner === o ? 'owner--here' : ''} ${closed ? 'owner--done' : ''}`}
+              title={
+                closed
+                  ? `${o} уже закрыл этот предмет`
+                  : `${o} ещё не закрыл`
+              }
+              aria-label={
+                closed
+                  ? `${o} уже закрыл этот предмет`
+                  : `${o} ещё не закрыл`
+              }
+            >
+              {o}
+            </span>
+          )
+        })}
       </footer>
     </article>
   )

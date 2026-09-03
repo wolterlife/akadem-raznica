@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { setPresenceEditing } from './presence'
 import type { Assessment } from './types'
 import {
@@ -17,6 +17,9 @@ import { CardForm } from './features/board/CardForm'
 import { usePresenceSession } from './features/presence/usePresenceSession'
 import { NameGate } from './features/presence/NameGate'
 import { BoardHeader } from './features/header/BoardHeader'
+import { BurndownPanel } from './features/pace/BurndownPanel'
+import { usePace } from './features/pace/usePace'
+import { loadProfFilter, saveProfFilter } from './prefs'
 import './App.css'
 
 export default function App() {
@@ -36,7 +39,7 @@ export default function App() {
   const [creating, setCreating] = useState(false)
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('all')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
-  const [profFilter, setProfFilter] = useState('all')
+  const [profFilter, setProfFilter] = useState(loadProfFilter)
   const [sortKey, setSortKey] = useState<SortKey>('links')
   const [query, setQuery] = useState('')
 
@@ -45,6 +48,12 @@ export default function App() {
     usePresenceSession(shared, editing?.id ?? null)
 
   const professors = useMemo(() => listProfessors(items), [items])
+  const professorOptions = useMemo(() => {
+    if (profFilter !== 'all' && !professors.includes(profFilter)) {
+      return [profFilter, ...professors]
+    }
+    return professors
+  }, [professors, profFilter])
   const subjects = useMemo(() => listSubjects(items), [items])
   const visible = useMemo(
     () =>
@@ -58,6 +67,23 @@ export default function App() {
     [items, matchFilter, typeFilter, profFilter, sortKey, query],
   )
   const stats = useMemo(() => computeStats(items), [items])
+  const remaining = useMemo(
+    () => ({ D: stats.leftD, M: stats.leftM }),
+    [stats.leftD, stats.leftM],
+  )
+  const totals = useMemo(
+    () => ({ D: stats.totalD, M: stats.totalM }),
+    [stats.totalD, stats.totalM],
+  )
+  const { pace, setDates } = usePace(
+    shared,
+    syncStatus !== 'connecting',
+    remaining,
+  )
+
+  useEffect(() => {
+    saveProfFilter(profFilter)
+  }, [profFilter])
 
   function closeForm() {
     setCreating(false)
@@ -76,7 +102,7 @@ export default function App() {
         stats={stats}
         online={online}
         identity={identity}
-        professors={professors}
+        professors={professorOptions}
         matchFilter={matchFilter}
         typeFilter={typeFilter}
         profFilter={profFilter}
@@ -105,6 +131,13 @@ export default function App() {
         onMove={moveToColumn}
       />
 
+      <BurndownPanel
+        pace={pace}
+        totals={totals}
+        remaining={remaining}
+        onDates={setDates}
+      />
+
       <p className="hint">
         Наведи или удержи палец — подсветятся связанные карточки. Перенос из
         своего столбца в Done закрывает предмет только у тебя.
@@ -115,7 +148,7 @@ export default function App() {
         <CardForm
           initial={editing}
           subjects={subjects}
-          professors={professors}
+          professors={professorOptions}
           onClose={closeForm}
           onSave={(item) => {
             upsert(item)

@@ -1,24 +1,16 @@
 import type { Identity, PresenceUser } from '../../presence'
 import type { SyncStatus } from '../../sync'
 import type {
+  BoardStats,
   MatchFilter,
   SortKey,
   TypeFilter,
 } from '../board/filters'
 
-interface Stats {
-  open: number
-  ideal: number
-  alike: number
-  subject: number
-  professor: number
-  done: number
-}
-
 interface Props {
   syncStatus: SyncStatus
   shared: boolean
-  stats: Stats
+  stats: BoardStats
   online: PresenceUser[]
   identity: Identity | null
   professors: string[]
@@ -127,29 +119,47 @@ export function BoardHeader({
 
       <div className="top__side">
         <div className="stats" aria-label="Сводка">
-          <div>
-            <strong>{stats.open}</strong>
-            <span>открыто</span>
+          <div className="stats__person">
+            <p className="stats__who">D</p>
+            <p className="stats__main">
+              <strong>{stats.leftD}</strong>
+              <span>осталось</span>
+            </p>
+            <p className="stats__sub">
+              всего {stats.totalD} · закрыто {stats.closedD}
+            </p>
           </div>
-          <div>
-            <strong>{stats.ideal}</strong>
-            <span>1 в 1</span>
+          <div className="stats__person">
+            <p className="stats__who">M</p>
+            <p className="stats__main">
+              <strong>{stats.leftM}</strong>
+              <span>осталось</span>
+            </p>
+            <p className="stats__sub">
+              всего {stats.totalM} · закрыто {stats.closedM}
+            </p>
           </div>
-          <div>
-            <strong>{stats.alike}</strong>
-            <span>почти</span>
-          </div>
-          <div>
-            <strong>{stats.subject}</strong>
-            <span>предмет</span>
-          </div>
-          <div>
-            <strong>{stats.professor}</strong>
-            <span>препод</span>
-          </div>
-          <div>
-            <strong>{stats.done}</strong>
-            <span>done</span>
+          <div className="stats__more">
+            <div title="Карточки, которые нужны и D, и M">
+              <strong>{stats.shared}</strong>
+              <span>общих</span>
+              <em>открыто {stats.sharedLeft}</em>
+            </div>
+            <div title="Полное совпадение предмета, типа и преподавателя">
+              <strong>{stats.ideal}</strong>
+              <span>1 в 1</span>
+            </div>
+            <div title="Предметы только у одного">
+              <strong>{stats.onlyD + stats.onlyM}</strong>
+              <span>только у одного</span>
+              <em>
+                D {stats.onlyD} · M {stats.onlyM}
+              </em>
+            </div>
+            <div title="Закрыли оба, либо личная карточка ушла в Done">
+              <strong>{stats.done}</strong>
+              <span>в Done</span>
+            </div>
           </div>
         </div>
 
@@ -221,12 +231,12 @@ export function BoardHeader({
           </label>
 
           <label className="filter-select">
-            <span>препод</span>
+            <span>преподаватель</span>
             <select
               value={profFilter}
               onChange={(e) => onProfFilter(e.target.value)}
             >
-              <option value="all">все преподы</option>
+              <option value="all">все преподаватели</option>
               {professors.map((d) => (
                 <option key={d} value={d}>
                   {d}
@@ -244,7 +254,7 @@ export function BoardHeader({
               <option value="links">сначала связи</option>
               <option value="subject">по предмету</option>
               <option value="type">по типу</option>
-              <option value="prof">по преподу</option>
+              <option value="prof">по преподавателю</option>
             </select>
           </label>
 

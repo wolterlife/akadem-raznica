@@ -5,7 +5,7 @@ import {
   normalize,
   profKey,
 } from '../../sync'
-import { isFullyDone, isOpenFor } from './progress'
+import { isFullyDone, isOpenFor, isShared } from './progress'
 
 export type MatchFilter = 'all' | 'ideal' | 'alike' | 'subject' | 'professor'
 
@@ -194,7 +194,10 @@ export function buildAlignRows(
   const rows: AlignRow[] = []
 
   for (const card of dList) {
-    const both = card.owners.includes('D') && card.owners.includes('M')
+    const both =
+      card.owners.includes('D') &&
+      card.owners.includes('M') &&
+      isOpenFor(card, 'M')
     if (!both || usedD.has(card.id)) continue
     usedD.add(card.id)
     usedM.add(card.id)
@@ -280,15 +283,51 @@ export function orderedColumnItems(
   return out
 }
 
-export function computeStats(items: Assessment[]) {
-  const open = items.filter((i) => !isFullyDone(i))
+export interface BoardStats {
+  totalD: number
+  totalM: number
+  leftD: number
+  leftM: number
+  closedD: number
+  closedM: number
+  shared: number
+  sharedLeft: number
+  onlyD: number
+  onlyM: number
+  ideal: number
+  done: number
+}
+
+export function computeStats(items: Assessment[]): BoardStats {
+  const owned = (owner: 'D' | 'M') =>
+    items.filter((item) => item.owners.includes(owner))
+  const remaining = (owner: 'D' | 'M') =>
+    items.filter((item) => isOpenFor(item, owner))
+  const totalD = owned('D').length
+  const totalM = owned('M').length
+  const leftD = remaining('D').length
+  const leftM = remaining('M').length
+  const sharedItems = items.filter(isShared)
   return {
-    open: open.length,
-    ideal: open.filter((i) => getMatchKind(i, items) === 'ideal').length,
-    alike: open.filter((i) => getMatchKind(i, items) === 'alike').length,
-    subject: open.filter((i) => getMatchKind(i, items) === 'subject').length,
-    professor: open.filter((i) => getMatchKind(i, items) === 'professor')
-      .length,
-    done: items.length - open.length,
+    totalD,
+    totalM,
+    leftD,
+    leftM,
+    closedD: totalD - leftD,
+    closedM: totalM - leftM,
+    shared: sharedItems.length,
+    sharedLeft: sharedItems.filter(
+      (item) => isOpenFor(item, 'D') || isOpenFor(item, 'M'),
+    ).length,
+    onlyD: items.filter(
+      (item) => item.owners.includes('D') && !item.owners.includes('M'),
+    ).length,
+    onlyM: items.filter(
+      (item) => item.owners.includes('M') && !item.owners.includes('D'),
+    ).length,
+    ideal: items.filter(
+      (item) => !isFullyDone(item) && getMatchKind(item, items) === 'ideal',
+    ).length,
+    done: items.filter(isFullyDone).length,
   }
 }

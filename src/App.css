@@ -207,32 +207,79 @@
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
-  padding: 12px;
+  padding: 10px;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(23, 27, 37, 0.85);
   backdrop-filter: blur(8px);
 }
 
-.stats div {
+.stats__person {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.stats__who {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.stats__main {
+  margin: 2px 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.stats__main strong,
+.stats__more strong {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.55rem;
+  color: var(--accent);
+}
+
+.stats__main span,
+.stats__more span {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.stats__sub {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.stats__more {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+}
+
+.stats__more div {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 8px;
 }
 
-.stats strong {
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 1.45rem;
-  color: var(--accent);
-}
-
-.stats span {
-  font-size: 0.75rem;
+.stats__more em {
+  display: block;
+  margin-top: 2px;
+  font-style: normal;
+  font-size: 0.68rem;
   color: var(--muted);
-  text-transform: lowercase;
 }
 
 .toolbar {
@@ -270,7 +317,7 @@
   color: #e8ecf4;
   font: inherit;
   font-size: 0.86rem;
-  max-width: 11rem;
+  max-width: 14rem;
   cursor: pointer;
   color-scheme: dark;
 }
@@ -904,8 +951,9 @@
 }
 
 .owner--done {
-  opacity: 0.45;
+  opacity: 0.5;
   text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
 }
 
 .hint {
@@ -913,6 +961,255 @@
   color: var(--muted);
   font-size: 0.88rem;
   text-align: center;
+}
+
+.pace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 28px;
+}
+
+.burn {
+  padding: 16px 16px 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(23, 27, 37, 0.85);
+}
+
+.burn__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.burn__title {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+
+.burn__lead {
+  margin: 4px 0 0;
+  max-width: 36ch;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.burn__dates {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.burn__due {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.burn__due input {
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #e8ecf4;
+  color-scheme: dark;
+  font-size: 0.86rem;
+}
+
+.burn__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+  margin: 14px 0 8px;
+}
+
+.burn__pending {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.burn__pending strong {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.45rem;
+  color: var(--accent);
+}
+
+.burn__compare {
+  margin: 0;
+  color: #dce3f0;
+  font-size: 0.88rem;
+}
+
+.burn__status {
+  margin: 0 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.burn__status--ahead,
+.burn__status--done {
+  color: var(--ideal);
+}
+
+.burn__status--behind {
+  color: var(--danger);
+}
+
+.burn__status--waiting,
+.burn__status--setup {
+  color: var(--muted);
+}
+
+.burn__chart {
+  position: relative;
+}
+
+.burn__hint {
+  margin: 0;
+  min-height: 1.2em;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.burn__tip {
+  position: absolute;
+  top: 10px;
+  z-index: 2;
+  transform: translateX(-12%);
+  min-width: 160px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(16, 19, 28, 0.94);
+  box-shadow: var(--shadow);
+  color: #dce3f0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.burn__tip--left {
+  transform: translateX(-100%);
+}
+
+.burn__tip strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.82rem;
+  color: #fff;
+}
+
+.burn__tip p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.burn__cursor line {
+  stroke: rgba(232, 236, 244, 0.45);
+  stroke-width: 1;
+}
+
+.burn__cursor circle {
+  fill: #e8ecf4;
+  stroke: #171b25;
+  stroke-width: 1.5;
+}
+
+.burn__empty {
+  margin: 18px 0 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.burn__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+}
+
+.burn__grid {
+  stroke: rgba(232, 236, 244, 0.08);
+  stroke-width: 1;
+}
+
+.burn__tick {
+  fill: #8b93a7;
+  font-size: 11px;
+}
+
+.burn__ideal {
+  fill: none;
+  stroke: rgba(232, 236, 244, 0.45);
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+  stroke-linecap: round;
+}
+
+.burn__now {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.burn__fill {
+  fill: rgba(142, 180, 255, 0.18);
+}
+
+.burn__dot {
+  fill: var(--accent);
+  stroke: #171b25;
+  stroke-width: 1.5;
+}
+
+.burn__today {
+  stroke: rgba(232, 236, 244, 0.22);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+.burn__legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.burn__legend-now::before,
+.burn__legend-ideal::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 99px;
+  vertical-align: -1px;
+}
+
+.burn__legend-now::before {
+  background: var(--accent);
+}
+
+.burn__legend-ideal::before {
+  background: rgba(232, 236, 244, 0.45);
 }
 
 .modal-backdrop {
@@ -1120,8 +1417,8 @@
 }
 
 @media (max-width: 720px) {
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
+  .pace {
+    grid-template-columns: 1fr;
   }
 
   .board {
