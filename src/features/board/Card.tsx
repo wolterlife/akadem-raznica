@@ -6,6 +6,7 @@ import type { PresenceUser } from '../../presence'
 import { getCardBadges, listCardRelations, relationCaption } from './badges'
 import { ProfessorPhotoButton } from './ProfessorPhoto'
 import { professorLabel } from '../../professors'
+import { closedCounterpart } from '../../sync'
 import { columnOwner, isDoneFor, isFullyDone, noteFor } from './progress'
 
 interface CardProps {
@@ -87,6 +88,7 @@ export function Card({
   const done = isFullyDone(item)
   const badges = getCardBadges(item, allItems, owner)
   const matchBadge = badges.find((b) => b.scope === 'external')
+  const peerClosed = closedCounterpart(item, allItems)
   const internal = badges.filter((b) => b.scope === 'internal')
   const internalRelations = done
     ? []
@@ -175,20 +177,27 @@ export function Card({
         <span>{professorLabel(item.professor)}</span>
       </p>
 
-      {matchBadge && (
+      {(matchBadge || peerClosed) && (
         <div className="card__group">
           <p className="card__group-label">между D и M</p>
-          <p
-            className={`card__match ${
-              matchBadge.kind === 'ideal'
-                ? 'card__match--full'
-                : matchBadge.kind === 'professor'
-                  ? 'card__match--prof'
-                  : 'card__match--partial'
-            }`}
-          >
-            {matchBadge.text}
-          </p>
+          {matchBadge ? (
+            <p
+              className={`card__match ${
+                matchBadge.kind === 'ideal'
+                  ? 'card__match--full'
+                  : matchBadge.kind === 'professor'
+                    ? 'card__match--prof'
+                    : 'card__match--partial'
+              }`}
+            >
+              {matchBadge.text}
+            </p>
+          ) : null}
+          {peerClosed ? (
+            <p className="card__match card__match--peer-done">
+              {peerClosed} уже закрыл — у {item.owners[0]} ещё открыто
+            </p>
+          ) : null}
         </div>
       )}
 

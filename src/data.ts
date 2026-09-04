@@ -45,6 +45,7 @@ export const SEED: Assessment[] = [
     type: 'course_project',
     owners: ['D'],
     column: 'd',
+    notes: { D: 'Потенциально легко' },
   },
   {
     id: 's5',
@@ -54,6 +55,7 @@ export const SEED: Assessment[] = [
     type: 'coursework',
     owners: ['D'],
     column: 'd',
+    notes: { D: 'Соколова? хорошая' },
   },
   {
     id: 's6',
@@ -64,6 +66,7 @@ export const SEED: Assessment[] = [
     owners: ['D'],
     column: 'd',
     pending: true,
+    notes: { D: 'Коваленко гуд? Дмитревич странный?' },
   },
   {
     id: 's7',
@@ -74,6 +77,7 @@ export const SEED: Assessment[] = [
     owners: ['D'],
     column: 'd',
     pending: true,
+    notes: { D: 'Безюк норм/Черненко странный' },
   },
   {
     id: 's8',
@@ -83,6 +87,7 @@ export const SEED: Assessment[] = [
     type: 'exam',
     owners: ['D'],
     column: 'd',
+    notes: { D: 'Быковский/Казаков' },
   },
 
   // —— только D ——
@@ -94,6 +99,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['D'],
     column: 'd',
+    notes: { D: 'Безюк. Нормальный' },
   },
   {
     id: 'd3',
@@ -130,7 +136,7 @@ export const SEED: Assessment[] = [
     type: 'practice',
     owners: ['D'],
     column: 'd',
-    notes: { D: 'дифф.зачёт (практика)' },
+    notes: { D: 'дифф.зачёт (практика)\nПотенциально легко' },
   },
   {
     id: 'd11',
@@ -140,6 +146,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['D'],
     column: 'd',
+    notes: { D: 'Быковский? Сказать что всё знаешь. \nМб Казаков' },
   },
   {
     id: 'd12',
@@ -149,6 +156,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['D'],
     column: 'd',
+    notes: { D: 'Дунина норм\nc#. asp.net' },
   },
   {
     id: 'd14',
@@ -158,6 +166,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['D'],
     column: 'd',
+    notes: { D: 'Корниенко' },
   },
   {
     id: 'd15',
@@ -167,6 +176,7 @@ export const SEED: Assessment[] = [
     type: 'credit',
     owners: ['D'],
     column: 'd',
+    notes: { D: 'Казаков' },
   },
   {
     id: 'd16',
@@ -176,6 +186,9 @@ export const SEED: Assessment[] = [
     type: 'exam',
     owners: ['D'],
     column: 'd',
+    notes: {
+      D: 'Шут - на пересдачу сразу. 20 вопросов по каждой теме\nКуксевич - нужны софты, то терпимо а так плохо',
+    },
   },
   {
     id: 'd17',
@@ -186,6 +199,7 @@ export const SEED: Assessment[] = [
     owners: ['D'],
     column: 'd',
     pending: true,
+    notes: { D: 'Возможно Черненко?' },
   },
   {
     id: 'd18',
@@ -196,6 +210,7 @@ export const SEED: Assessment[] = [
     owners: ['D'],
     column: 'd',
     pending: true,
+    notes: { D: 'Хаданёнок - классный. Мб он' },
   },
   {
     id: 'd19',
@@ -206,6 +221,7 @@ export const SEED: Assessment[] = [
     owners: ['D'],
     column: 'd',
     pending: true,
+    notes: { D: 'Казаков мб' },
   },
   {
     id: 'd21',
@@ -216,6 +232,7 @@ export const SEED: Assessment[] = [
     owners: ['D'],
     column: 'd',
     pending: true,
+    notes: { D: 'Корниенко. Плохо.' },
   },
   {
     id: 'd22',

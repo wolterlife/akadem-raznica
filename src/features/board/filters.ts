@@ -1,5 +1,6 @@
 import type { Assessment, AssessmentType, ColumnId } from '../../types'
 import {
+  closedCounterpart,
   getMatchKind,
   linkGroupKey,
   normalize,
@@ -187,6 +188,9 @@ function rowSortKey(row: AlignRow, all: Assessment[]) {
               ? 4
               : 5
     return `${rank}:${linkGroupKey(sample)}`
+  }
+  if (closedCounterpart(sample, all)) {
+    return `3:${linkGroupKey(sample)}`
   }
   return `9:${sample.subject}`
 }

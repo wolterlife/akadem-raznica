@@ -2,7 +2,7 @@ import { get, ref, set } from 'firebase/database'
 import { getDb, isSyncConfigured } from './firebase'
 import { doneOwnersOf, isFullyDone } from './features/board/progress'
 import { isUnknownProfessor } from './professors'
-import type { Assessment } from './types'
+import type { Assessment, Owner } from './types'
 
 const BOARD_PATH = 'board'
 const STORAGE_KEY = 'akadem-raznica:v1'
@@ -121,7 +121,7 @@ export function getMatchKind(
     return 'ideal'
   }
 
-  const others = all.filter((a) => a.id !== card.id && !isFullyDone(a))
+  const others = all.filter((a) => a.id !== card.id)
   const subj = normalize(card.subject)
   const prof = profKey(card.professor)
 
@@ -163,6 +163,27 @@ export function getMatchKind(
 }
 
 /** Группа для сортировки «по связям»: препод → иначе предмет */
+/** Кто из пары уже закрыл тот же предмет своей карточкой. */
+export function closedCounterpart(
+  card: Assessment,
+  all: Assessment[],
+): Owner | null {
+  if (isFullyDone(card)) return null
+  const who = card.owners.length === 1 ? card.owners[0] : null
+  if (!who) return null
+  const other: Owner = who === 'D' ? 'M' : 'D'
+  const subj = normalize(card.subject)
+  const found = all.some(
+    (a) =>
+      a.id !== card.id &&
+      isFullyDone(a) &&
+      a.owners.includes(other) &&
+      !a.owners.includes(who) &&
+      normalize(a.subject) === subj,
+  )
+  return found ? other : null
+}
+
 export function linkGroupKey(card: Assessment): string {
   const prof = profKey(card.professor)
   if (prof) return `p:${prof}`

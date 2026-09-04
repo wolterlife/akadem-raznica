@@ -684,6 +684,10 @@
   font-weight: 500;
 }
 
+.card__match--peer-done {
+  color: #e4c86a;
+}
+
 .legend {
   list-style: none;
   margin: 12px 0 0;
