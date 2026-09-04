@@ -45,6 +45,7 @@ export const SEED: Assessment[] = [
     type: 'course_project',
     owners: ['D'],
     column: 'd',
+    pending: true,
     notes: { D: 'Потенциально легко' },
   },
   {
@@ -55,6 +56,7 @@ export const SEED: Assessment[] = [
     type: 'coursework',
     owners: ['D'],
     column: 'd',
+    pending: true,
     notes: { D: 'Соколова? хорошая' },
   },
   {

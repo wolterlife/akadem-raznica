@@ -302,14 +302,31 @@ export interface BoardStats {
   totalM: number
   leftD: number
   leftM: number
-  closedD: number
-  closedM: number
-  shared: number
-  sharedLeft: number
+  mustD: number
+  mustM: number
+  pendingD: number
+  pendingM: number
   onlyD: number
   onlyM: number
-  ideal: number
-  done: number
+  commonD: number
+  commonM: number
+}
+
+function hasSameSubject(item: Assessment, all: Assessment[]) {
+  if (isShared(item)) return true
+  const kind = getMatchKind(item, all)
+  return kind === 'ideal' || kind === 'alike' || kind === 'subject'
+}
+
+function openBreakdown(open: Assessment[], all: Assessment[]) {
+  const common = open.filter((item) => hasSameSubject(item, all))
+  return {
+    left: open.length,
+    must: open.filter((item) => !item.pending).length,
+    pending: open.filter((item) => item.pending).length,
+    common: common.length,
+    only: open.length - common.length,
+  }
 }
 
 export function computeStats(items: Assessment[]): BoardStats {
@@ -317,31 +334,20 @@ export function computeStats(items: Assessment[]): BoardStats {
     items.filter((item) => item.owners.includes(owner))
   const remaining = (owner: 'D' | 'M') =>
     items.filter((item) => isOpenFor(item, owner))
-  const totalD = owned('D').length
-  const totalM = owned('M').length
-  const leftD = remaining('D').length
-  const leftM = remaining('M').length
-  const sharedItems = items.filter(isShared)
+  const d = openBreakdown(remaining('D'), items)
+  const m = openBreakdown(remaining('M'), items)
   return {
-    totalD,
-    totalM,
-    leftD,
-    leftM,
-    closedD: totalD - leftD,
-    closedM: totalM - leftM,
-    shared: sharedItems.length,
-    sharedLeft: sharedItems.filter(
-      (item) => isOpenFor(item, 'D') || isOpenFor(item, 'M'),
-    ).length,
-    onlyD: items.filter(
-      (item) => item.owners.includes('D') && !item.owners.includes('M'),
-    ).length,
-    onlyM: items.filter(
-      (item) => item.owners.includes('M') && !item.owners.includes('D'),
-    ).length,
-    ideal: items.filter(
-      (item) => !isFullyDone(item) && getMatchKind(item, items) === 'ideal',
-    ).length,
-    done: items.filter(isFullyDone).length,
+    totalD: owned('D').length,
+    totalM: owned('M').length,
+    leftD: d.left,
+    leftM: m.left,
+    mustD: d.must,
+    mustM: m.must,
+    pendingD: d.pending,
+    pendingM: m.pending,
+    onlyD: d.only,
+    onlyM: m.only,
+    commonD: d.common,
+    commonM: m.common,
   }
 }

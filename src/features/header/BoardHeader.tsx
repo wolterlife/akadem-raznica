@@ -119,47 +119,59 @@ export function BoardHeader({
 
       <div className="top__side">
         <div className="stats" aria-label="Сводка">
-          <div className="stats__person">
+          <div className="stats__head">
             <p className="stats__who">D</p>
-            <p className="stats__main">
+            <p className="stats__who">M</p>
+          </div>
+          <div className="stats__row stats__row--main">
+            <p>
               <strong>{stats.leftD}</strong>
               <span>осталось</span>
             </p>
-            <p className="stats__sub">
-              всего {stats.totalD} · закрыто {stats.closedD}
-            </p>
-          </div>
-          <div className="stats__person">
-            <p className="stats__who">M</p>
-            <p className="stats__main">
+            <p>
               <strong>{stats.leftM}</strong>
               <span>осталось</span>
             </p>
-            <p className="stats__sub">
-              всего {stats.totalM} · закрыто {stats.closedM}
+          </div>
+          <div className="stats__row">
+            <p>
+              <strong>{stats.mustD}</strong>
+              <span>обязательных</span>
+            </p>
+            <p>
+              <strong>{stats.mustM}</strong>
+              <span>обязательных</span>
             </p>
           </div>
-          <div className="stats__more">
-            <div title="Карточки, которые нужны и D, и M">
-              <strong>{stats.shared}</strong>
+          <div className="stats__row">
+            <p>
+              <strong>{stats.pendingD}</strong>
+              <span>под вопросом</span>
+            </p>
+            <p>
+              <strong>{stats.pendingM}</strong>
+              <span>под вопросом</span>
+            </p>
+          </div>
+          <div className="stats__row">
+            <p>
+              <strong>{stats.onlyD}</strong>
+              <span>индивидуальных</span>
+            </p>
+            <p>
+              <strong>{stats.onlyM}</strong>
+              <span>индивидуальных</span>
+            </p>
+          </div>
+          <div className="stats__row">
+            <p>
+              <strong>{stats.commonD}</strong>
               <span>общих</span>
-              <em>открыто {stats.sharedLeft}</em>
-            </div>
-            <div title="Полное совпадение предмета, типа и преподавателя">
-              <strong>{stats.ideal}</strong>
-              <span>1 в 1</span>
-            </div>
-            <div title="Предметы только у одного">
-              <strong>{stats.onlyD + stats.onlyM}</strong>
-              <span>только у одного</span>
-              <em>
-                D {stats.onlyD} · M {stats.onlyM}
-              </em>
-            </div>
-            <div title="Закрыли оба, либо личная карточка ушла в Done">
-              <strong>{stats.done}</strong>
-              <span>в Done</span>
-            </div>
+            </p>
+            <p>
+              <strong>{stats.commonM}</strong>
+              <span>общих</span>
+            </p>
           </div>
         </div>
 
