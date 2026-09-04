@@ -865,6 +865,127 @@
   margin: 3px 0 0;
   color: var(--muted);
   font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.card__prof span {
+  min-width: 0;
+}
+
+.prof-face {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(232, 236, 244, 0.16);
+  border-radius: 50%;
+  background: rgba(11, 13, 18, 0.55);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.prof-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+.prof-face:hover {
+  border-color: rgba(142, 180, 255, 0.5);
+  color: var(--accent);
+}
+
+.prof-face--form {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 1px;
+}
+
+.prof-face--form svg {
+  width: 18px;
+  height: 18px;
+}
+
+.modal__prof {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.modal__prof .combo {
+  min-width: 0;
+}
+
+.photo-modal {
+  z-index: 50;
+}
+
+.photo-sheet {
+  width: min(360px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 20px;
+  background: #171b25;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  animation: pop 0.25s ease;
+}
+
+.photo-sheet__img {
+  width: 100%;
+  max-height: min(68vh, 520px);
+  object-fit: contain;
+  object-position: center top;
+  border-radius: 12px;
+  background: #0b0d12;
+}
+
+.photo-sheet__empty {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--muted);
+  text-align: center;
+  padding: 20px;
+}
+
+.photo-sheet__meta h2 {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: -0.03em;
+}
+
+.photo-sheet__meta p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.photo-sheet__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 8px;
+}
+
+.photo-sheet__links a {
+  color: var(--accent);
+  font-size: 0.82rem;
 }
 
 .card__note {

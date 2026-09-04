@@ -3,6 +3,7 @@ import type { Assessment, AssessmentType, Owner } from '../../types'
 import { TYPE_LABEL } from '../../types'
 import { uid } from '../../sync'
 import { Combobox } from './Combobox'
+import { ProfessorPhotoButton } from './ProfessorPhoto'
 import { notesPayload } from './progress'
 
 interface FormProps {
@@ -165,13 +166,16 @@ export function CardForm({
           />
         </label>
 
-        <Combobox
-          label="Преподаватель"
-          value={form.professor}
-          options={professors}
-          placeholder="Начни писать или добавь нового…"
-          onChange={(professor) => setForm({ ...form, professor })}
-        />
+        <div className="modal__prof">
+          <Combobox
+            label="Преподаватель"
+            value={form.professor}
+            options={professors}
+            placeholder="Начни писать или добавь нового…"
+            onChange={(professor) => setForm({ ...form, professor })}
+          />
+          <ProfessorPhotoButton name={form.professor} variant="form" />
+        </div>
 
         <label>
           Тип

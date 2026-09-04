@@ -6,17 +6,57 @@ export const COLUMNS: ColumnDef[] = [
   { id: 'done', title: 'Done', subtitle: 'закрыто' },
 ]
 
-/** Реальная разница D + похожие предметы M (преподы — тестовые ФИО) */
+/** Реальная разница D + предметы M с листа (часть преподов — ФИО с кафедр ВГТУ) */
 export const SEED: Assessment[] = [
   // —— общие ——
   {
     id: 's1',
     subject: 'Английский язык в профессиональной деятельности',
     short: 'ENG',
-    professor: 'Смирнова Елена Петровна',
+    professor: 'Костырева Светлана Степановна',
     type: 'credit',
     owners: ['D', 'M'],
     column: 'd',
+  },
+  {
+    id: 'd3',
+    subject: 'История белорусской государственности',
+    short: 'ИБГ',
+    professor: 'Субботин Александр Александрович',
+    type: 'exam',
+    owners: ['D', 'M'],
+    column: 'd',
+  },
+  {
+    id: 'd4',
+    subject: 'История науки и техники',
+    short: 'ИНТ',
+    professor: 'Субботин Александр Александрович',
+    type: 'diff_credit',
+    owners: ['D', 'M'],
+    column: 'd',
+  },
+  {
+    id: 'd5',
+    subject: 'Культурология',
+    short: 'КУЛЬТ',
+    professor: 'Субботин Александр Александрович',
+    type: 'diff_credit',
+    owners: ['D', 'M'],
+    column: 'd',
+  },
+  {
+    id: 'd24',
+    subject: 'Современная политэкономия',
+    short: 'СПЭ',
+    professor: 'Субботин Александр Александрович',
+    type: 'exam',
+    owners: ['D', 'M'],
+    column: 'd',
+    notes: {
+      D: 'заяв · 2-й: Советникова Ольга Петровна',
+      M: '2-й: Советникова Ольга Петровна',
+    },
   },
   {
     id: 's2',
@@ -91,33 +131,6 @@ export const SEED: Assessment[] = [
     short: 'ИППР',
     professor: 'Жукова Татьяна Михайловна',
     type: 'credit',
-    owners: ['D'],
-    column: 'd',
-  },
-  {
-    id: 'd3',
-    subject: 'История белорусской государственности',
-    short: 'ИБГ',
-    professor: 'Савченко Ирина Владимировна',
-    type: 'exam',
-    owners: ['D'],
-    column: 'd',
-  },
-  {
-    id: 'd4',
-    subject: 'История науки и техники',
-    short: 'ИНТ',
-    professor: 'Савченко Ирина Владимировна',
-    type: 'diff_credit',
-    owners: ['D'],
-    column: 'd',
-  },
-  {
-    id: 'd5',
-    subject: 'Культурология',
-    short: 'КУЛЬТ',
-    professor: 'Лебедева Мария Александровна',
-    type: 'diff_credit',
     owners: ['D'],
     column: 'd',
   },
@@ -226,16 +239,6 @@ export const SEED: Assessment[] = [
     column: 'd',
     notes: { D: 'заяв · экзамен (отдельно от курс.пр.)' },
   },
-  {
-    id: 'd24',
-    subject: 'Современная политэкономия',
-    short: 'СПЭ',
-    professor: 'Волкова Екатерина Юрьевна',
-    type: 'exam',
-    owners: ['D'],
-    column: 'd',
-    notes: { D: 'заяв' },
-  },
 
   // —— только M ——
   {
@@ -259,24 +262,13 @@ export const SEED: Assessment[] = [
     notes: { M: 'черновик M' },
   },
   {
-    id: 'm3',
-    subject: 'Культурология',
-    short: 'КУЛЬТ',
-    professor: 'Орлова Анна Сергеевна',
-    type: 'diff_credit',
-    owners: ['M'],
-    column: 'm',
-    notes: { M: 'черновик M · тот же предмет, другой препод' },
-  },
-  {
     id: 'm4',
     subject: 'Теория вероятностей и математическая статистика',
     short: 'ТВМС',
-    professor: 'Петрова Наталья Ивановна',
+    professor: 'Коваленко Александр Вильямович',
     type: 'exam',
     owners: ['M'],
     column: 'm',
-    notes: { M: 'черновик M' },
   },
   {
     id: 'm5',

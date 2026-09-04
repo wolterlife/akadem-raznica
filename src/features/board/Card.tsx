@@ -4,6 +4,7 @@ import type { Assessment, ColumnId, MatchKind, Owner } from '../../types'
 import { TYPE_LABEL } from '../../types'
 import type { PresenceUser } from '../../presence'
 import { getCardBadges, listCardRelations, relationCaption } from './badges'
+import { ProfessorPhotoButton } from './ProfessorPhoto'
 import { columnOwner, isDoneFor, isFullyDone, noteFor } from './progress'
 
 interface CardProps {
@@ -159,7 +160,8 @@ export function Card({
 
       <h3 className="card__subject">{item.subject}</h3>
       <p className="card__prof">
-        {item.professor.trim() || 'препод не указан'}
+        <ProfessorPhotoButton name={item.professor} />
+        <span>{item.professor.trim() || 'препод не указан'}</span>
       </p>
 
       {matchBadge && (
