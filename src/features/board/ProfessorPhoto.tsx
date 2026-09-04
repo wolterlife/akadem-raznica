@@ -12,6 +12,8 @@ import {
   lookupProfessor,
   professorPhotoUrl,
   professorSearchUrl,
+  isUnknownProfessor,
+  professorLabel,
 } from '../../professors'
 
 function stopDrag(e: PointerEvent | MouseEvent | TouchEvent) {
@@ -26,20 +28,35 @@ export function ProfessorPhotoButton({
   variant?: 'card' | 'form'
 }) {
   const [open, setOpen] = useState(false)
-  const trimmed = name.trim()
-  const profile = lookupProfessor(trimmed)
+  const unknown = isUnknownProfessor(name)
+  const label = professorLabel(name)
+  const profile = unknown ? null : lookupProfessor(label)
   const photo = profile ? professorPhotoUrl(profile) : null
+  const className =
+    variant === 'form'
+      ? `prof-face prof-face--form${unknown ? ' prof-face--unknown' : ''}`
+      : `prof-face${unknown ? ' prof-face--unknown' : ''}`
 
-  if (!trimmed) return null
+  if (unknown) {
+    return (
+      <span
+        className={className}
+        title="Преподаватель неизвестен"
+        aria-label="Преподаватель неизвестен"
+      >
+        <span className="prof-face__q" aria-hidden>
+          ?
+        </span>
+      </span>
+    )
+  }
 
   return (
     <>
       <button
         type="button"
-        className={
-          variant === 'form' ? 'prof-face prof-face--form' : 'prof-face'
-        }
-        aria-label={`Фото: ${trimmed}`}
+        className={className}
+        aria-label={`Фото: ${label}`}
         title="Как выглядит"
         onPointerDown={stopDrag}
         onMouseDown={stopDrag}
@@ -62,7 +79,7 @@ export function ProfessorPhotoButton({
       </button>
       {open
         ? createPortal(
-            <ProfessorPhotoModal name={trimmed} onClose={() => setOpen(false)} />,
+            <ProfessorPhotoModal name={label} onClose={() => setOpen(false)} />,
             document.body,
           )
         : null}

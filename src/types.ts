@@ -24,6 +24,8 @@ export interface Assessment {
   notes?: Partial<Record<Owner, string>>
   /** Кто закрыл: заполняется переносом из своего столбца в Done */
   doneBy?: Owner[]
+  /** Сдавать или нет ещё не решено — зависит от преподавателя */
+  pending?: boolean
 }
 
 export interface ColumnDef {

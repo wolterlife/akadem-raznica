@@ -23,6 +23,7 @@ const empty = {
   owners: ['D'] as Owner[],
   noteD: '',
   noteM: '',
+  pending: false,
 }
 
 const TYPE_OPTIONS = Object.entries(TYPE_LABEL) as [AssessmentType, string][]
@@ -43,6 +44,7 @@ function initialForm(initial?: Assessment | null) {
     owners: [...initial.owners] as Owner[],
     noteD,
     noteM,
+    pending: Boolean(initial.pending),
   }
 }
 
@@ -123,6 +125,7 @@ export function CardForm({
       owners,
       column: initial?.column === 'done' ? 'done' : column,
       doneBy,
+      ...(form.pending ? { pending: true } : {}),
       ...notesPayload(owners, form.noteD, form.noteM),
     })
   }
@@ -171,7 +174,7 @@ export function CardForm({
             label="Преподаватель"
             value={form.professor}
             options={professors}
-            placeholder="Начни писать или добавь нового…"
+            placeholder="????? ????? если неизвестен"
             onChange={(professor) => setForm({ ...form, professor })}
           />
           <ProfessorPhotoButton name={form.professor} variant="form" />
@@ -212,6 +215,18 @@ export function CardForm({
             M
           </label>
         </fieldset>
+
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={form.pending}
+            onChange={() => setForm({ ...form, pending: !form.pending })}
+          />
+          под вопросом
+        </label>
+        <p className="modal__hint">
+          Не факт, что придётся сдавать — зависит от решения преподавателя.
+        </p>
 
         {both ? (
           <>

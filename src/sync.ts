@@ -1,6 +1,7 @@
 import { get, ref, set } from 'firebase/database'
 import { getDb, isSyncConfigured } from './firebase'
 import { doneOwnersOf, isFullyDone } from './features/board/progress'
+import { isUnknownProfessor } from './professors'
 import type { Assessment } from './types'
 
 const BOARD_PATH = 'board'
@@ -214,9 +215,8 @@ export function normalize(value: string) {
 }
 
 export function profKey(value: string) {
-  const n = normalize(value)
-  if (!n || n === '—' || n === '-' || n === '–' || n === '?') return null
-  return n
+  if (isUnknownProfessor(value)) return null
+  return normalize(value) || null
 }
 
 export function uid() {

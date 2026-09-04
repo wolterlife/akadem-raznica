@@ -1,8 +1,21 @@
+export const UNKNOWN_PROFESSOR = '????? ?????'
+
 export interface ProfessorProfile {
   name: string
   photo: string
   role: string
   page?: string
+}
+
+/** Пустое ФИО, прочерки или одни знаки вопроса. */
+export function isUnknownProfessor(name: string) {
+  const n = name.trim()
+  if (!n || n === '—' || n === '-' || n === '–') return true
+  return /^[?？]+(?:\s+[?？]+)*$/.test(n)
+}
+
+export function professorLabel(name: string) {
+  return isUnknownProfessor(name) ? UNKNOWN_PROFESSOR : name.trim()
 }
 
 const CATALOG: ProfessorProfile[] = [

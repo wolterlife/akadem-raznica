@@ -799,6 +799,11 @@
   background: rgba(142, 180, 255, 0.12);
 }
 
+.card.card--pending {
+  border-style: dashed;
+  border-color: rgba(201, 181, 106, 0.5);
+}
+
 .card__head {
   display: flex;
   justify-content: space-between;
@@ -806,6 +811,22 @@
   gap: 6px;
   margin-bottom: 4px;
   padding-right: 2px;
+}
+
+.card__head-tags {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.card__pending {
+  flex-shrink: 0;
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #e4c86a;
 }
 
 .card__short {
@@ -913,6 +934,23 @@
 .prof-face--form svg {
   width: 18px;
   height: 18px;
+}
+
+.prof-face--unknown {
+  border-style: dashed;
+  cursor: default;
+  color: #c9b56a;
+}
+
+.prof-face__q {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.prof-face--form .prof-face__q {
+  font-size: 1.35rem;
 }
 
 .modal__prof {

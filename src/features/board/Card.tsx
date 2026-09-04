@@ -5,6 +5,7 @@ import { TYPE_LABEL } from '../../types'
 import type { PresenceUser } from '../../presence'
 import { getCardBadges, listCardRelations, relationCaption } from './badges'
 import { ProfessorPhotoButton } from './ProfessorPhoto'
+import { professorLabel } from '../../professors'
 import { columnOwner, isDoneFor, isFullyDone, noteFor } from './progress'
 
 interface CardProps {
@@ -103,7 +104,7 @@ export function Card({
       style={style}
       data-card-id={item.id}
       data-col={colId}
-      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} ${both ? 'card--shared-owners' : ''} ${done ? 'card--in-done' : ''} match-${match} card--link-${linkState}`}
+      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} ${both ? 'card--shared-owners' : ''} ${done ? 'card--in-done' : ''} ${item.pending ? 'card--pending' : ''} match-${match} card--link-${linkState}`}
       {...listeners}
       {...attributes}
       onMouseEnter={() => onHoverChange?.(item.id, colId)}
@@ -153,15 +154,25 @@ export function Card({
 
       <header className="card__head">
         <span className="card__short">{item.short}</span>
-        <span className={`card__type card__type--${item.type}`}>
-          {TYPE_LABEL[item.type]}
+        <span className="card__head-tags">
+          {item.pending ? (
+            <span
+              className="card__pending"
+              title="Не факт, что придётся сдавать — решит преподаватель"
+            >
+              под вопросом
+            </span>
+          ) : null}
+          <span className={`card__type card__type--${item.type}`}>
+            {TYPE_LABEL[item.type]}
+          </span>
         </span>
       </header>
 
       <h3 className="card__subject">{item.subject}</h3>
       <p className="card__prof">
         <ProfessorPhotoButton name={item.professor} />
-        <span>{item.professor.trim() || 'препод не указан'}</span>
+        <span>{professorLabel(item.professor)}</span>
       </p>
 
       {matchBadge && (

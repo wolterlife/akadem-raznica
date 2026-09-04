@@ -6,6 +6,7 @@ import {
   profKey,
 } from '../../sync'
 import { isFullyDone, isOpenFor, isShared } from './progress'
+import { isUnknownProfessor, UNKNOWN_PROFESSOR } from '../../professors'
 
 export type MatchFilter = 'all' | 'ideal' | 'alike' | 'subject' | 'professor'
 
@@ -48,9 +49,14 @@ export function listProfessors(items: Assessment[]): string[] {
   const set = new Set<string>()
   for (const item of items) {
     const d = item.professor.trim()
-    if (d && d !== '—' && d !== '-') set.add(d)
+    if (isUnknownProfessor(d)) set.add(UNKNOWN_PROFESSOR)
+    else set.add(d)
   }
-  return [...set].sort((a, b) => a.localeCompare(b, 'ru'))
+  return [...set].sort((a, b) => {
+    if (a === UNKNOWN_PROFESSOR) return 1
+    if (b === UNKNOWN_PROFESSOR) return -1
+    return a.localeCompare(b, 'ru')
+  })
 }
 
 function matchRank(item: Assessment, all: Assessment[]) {
@@ -89,9 +95,9 @@ function compareItems(
 export function matchesQuery(item: Assessment, query: string) {
   const q = normalize(query)
   if (!q) return true
-  return [item.subject, item.short, item.professor].some((value) =>
-    normalize(value).includes(q),
-  )
+  return [item.subject, item.short, item.professor]
+    .concat(item.pending ? ['под вопросом'] : [])
+    .some((value) => normalize(value).includes(q))
 }
 
 export function filterAndSortItems(
@@ -126,8 +132,12 @@ export function filterAndSortItems(
       }
     }
 
-    if (profFilter !== 'all' && item.professor.trim() !== profFilter) {
-      return false
+    if (profFilter !== 'all') {
+      if (profFilter === UNKNOWN_PROFESSOR) {
+        if (!isUnknownProfessor(item.professor)) return false
+      } else if (item.professor.trim() !== profFilter) {
+        return false
+      }
     }
 
     return true
