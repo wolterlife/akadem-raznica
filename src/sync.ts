@@ -1,6 +1,6 @@
 import { get, ref, set } from 'firebase/database'
 import { getDb, isSyncConfigured } from './firebase'
-import { doneOwnersOf, isFullyDone } from './features/board/progress'
+import { doneOwnersOf, isFullyDone, isPendingDone } from './features/board/progress'
 import { isUnknownProfessor } from './professors'
 import type { Assessment, Owner } from './types'
 
@@ -117,11 +117,12 @@ export function getMatchKind(
   card: Assessment,
   all: Assessment[],
 ): import('./types').MatchKind {
+  if (isPendingDone(card)) return 'none'
   if (card.owners.includes('D') && card.owners.includes('M')) {
     return 'ideal'
   }
 
-  const others = all.filter((a) => a.id !== card.id)
+  const others = all.filter((a) => a.id !== card.id && !isPendingDone(a))
   const subj = normalize(card.subject)
   const prof = profKey(card.professor)
 
@@ -177,6 +178,7 @@ export function closedCounterpart(
     (a) =>
       a.id !== card.id &&
       isFullyDone(a) &&
+      !isPendingDone(a) &&
       a.owners.includes(other) &&
       !a.owners.includes(who) &&
       normalize(a.subject) === subj,

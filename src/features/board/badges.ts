@@ -1,7 +1,7 @@
 import type { Assessment, AssessmentType, MatchKind, Owner } from '../../types'
 import { TYPE_LABEL } from '../../types'
 import { getMatchKind, getRelatedLinks, normalize, profKey, type LinkReason } from '../../sync'
-import { isFullyDone, isShared } from './progress'
+import { isFullyDone, isPendingDone, isShared } from './progress'
 
 export type BadgeKind =
   | 'both'
@@ -55,34 +55,36 @@ export function getCardBadges(
   const badges: CardBadge[] = []
   const match: MatchKind = getMatchKind(card, all)
 
-  if (isShared(card) || match === 'ideal') {
-    badges.push({
-      key: 'ideal',
-      text: 'полное совпадение',
-      kind: 'ideal',
-      scope: 'external',
-    })
-  } else if (match === 'alike') {
-    badges.push({
-      key: 'alike',
-      text: 'тот же предмет и преподаватель',
-      kind: 'alike',
-      scope: 'external',
-    })
-  } else if (match === 'subject') {
-    badges.push({
-      key: 'subject',
-      text: 'тот же предмет',
-      kind: 'subject',
-      scope: 'external',
-    })
-  } else if (match === 'professor') {
-    badges.push({
-      key: 'professor',
-      text: 'тот же преподаватель',
-      kind: 'professor',
-      scope: 'external',
-    })
+  if (!isPendingDone(card)) {
+    if (isShared(card) || match === 'ideal') {
+      badges.push({
+        key: 'ideal',
+        text: 'полное совпадение',
+        kind: 'ideal',
+        scope: 'external',
+      })
+    } else if (match === 'alike') {
+      badges.push({
+        key: 'alike',
+        text: 'тот же предмет и преподаватель',
+        kind: 'alike',
+        scope: 'external',
+      })
+    } else if (match === 'subject') {
+      badges.push({
+        key: 'subject',
+        text: 'тот же предмет',
+        kind: 'subject',
+        scope: 'external',
+      })
+    } else if (match === 'professor') {
+      badges.push({
+        key: 'professor',
+        text: 'тот же преподаватель',
+        kind: 'professor',
+        scope: 'external',
+      })
+    }
   }
 
   const ownExtra = internalSameProfessorCount(card, all, forOwner)

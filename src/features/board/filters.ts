@@ -6,7 +6,7 @@ import {
   normalize,
   profKey,
 } from '../../sync'
-import { isFullyDone, isOpenFor, isShared } from './progress'
+import { isFullyDone, isOpenFor, isPendingDone, isShared } from './progress'
 import { isUnknownProfessor, UNKNOWN_PROFESSOR } from '../../professors'
 
 export type MatchFilter = 'all' | 'ideal' | 'alike' | 'subject' | 'professor'
@@ -111,7 +111,7 @@ export function filterAndSortItems(
     if (!matchesQuery(item, query)) return false
 
     if (matchFilter !== 'all') {
-      if (isFullyDone(item)) return true
+      if (isFullyDone(item) && !isPendingDone(item)) return true
       if (getMatchKind(item, items) !== matchFilter) return false
     }
 
@@ -313,6 +313,7 @@ export interface BoardStats {
 }
 
 function hasSameSubject(item: Assessment, all: Assessment[]) {
+  if (isPendingDone(item)) return false
   if (isShared(item)) return true
   const kind = getMatchKind(item, all)
   return kind === 'ideal' || kind === 'alike' || kind === 'subject'

@@ -26,6 +26,11 @@ export function isFullyDone(item: Assessment) {
   return item.owners.length > 0 && item.owners.every((owner) => isDoneFor(item, owner))
 }
 
+/** «Под вопросом» уже закрыто — сдавать не надо, совместной сдачи не будет. */
+export function isPendingDone(item: Assessment) {
+  return Boolean(item.pending) && doneOwnersOf(item).length > 0
+}
+
 export function isOpenFor(item: Assessment, owner: Owner) {
   return item.owners.includes(owner) && !isDoneFor(item, owner)
 }
