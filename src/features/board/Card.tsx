@@ -6,6 +6,7 @@ import type { PresenceUser } from '../../presence'
 import { getCardBadges, listCardRelations, relationCaption } from './badges'
 import { ProfessorPhotoButton } from './ProfessorPhoto'
 import { professorLabel } from '../../professors'
+import { WhereChip } from '../whereabouts/WhereChip'
 import { closedCounterpart } from '../../sync'
 import { columnOwner, isDoneFor, isFullyDone, noteFor } from './progress'
 
@@ -176,6 +177,7 @@ export function Card({
         <ProfessorPhotoButton name={item.professor} />
         <span>{professorLabel(item.professor)}</span>
       </p>
+      <WhereChip name={item.professor} />
 
       {(matchBadge || peerClosed) && (
         <div className="card__group">

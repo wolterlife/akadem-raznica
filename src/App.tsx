@@ -20,6 +20,7 @@ import { BoardHeader } from './features/header/BoardHeader'
 import { BurndownPanel } from './features/pace/BurndownPanel'
 import { usePace } from './features/pace/usePace'
 import { loadProfFilter, saveProfFilter } from './prefs'
+import { WhereProvider } from './features/whereabouts/WhereProvider'
 import './App.css'
 
 export default function App() {
@@ -96,6 +97,7 @@ export default function App() {
       {shared && !identity && <NameGate onReady={setIdentity} />}
       <div className="glow" aria-hidden />
 
+      <WhereProvider names={professors}>
       <BoardHeader
         syncStatus={syncStatus}
         shared={shared}
@@ -164,6 +166,7 @@ export default function App() {
           }
         />
       )}
+      </WhereProvider>
     </div>
   )
 }

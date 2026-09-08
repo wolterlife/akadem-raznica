@@ -1010,6 +1010,255 @@
   font-size: 0.82rem;
 }
 
+.where-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  margin: 6px 0 0;
+  padding: 3px 8px 3px 7px;
+  border: 1px solid rgba(232, 236, 244, 0.12);
+  border-radius: 999px;
+  background: rgba(11, 13, 18, 0.45);
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.where-chip span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.where-chip__time {
+  color: #c9d2e4;
+}
+
+.where-chip__room {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: #e8ecf4;
+}
+
+.where-chip__dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ideal);
+}
+
+.where-chip--here {
+  color: #d7ecff;
+  border-color: rgba(142, 180, 255, 0.35);
+  background: var(--accent-soft);
+}
+
+.where-chip--in_class {
+  color: #e8ecf4;
+}
+
+.where-chip--away {
+  font-size: 0.68rem;
+}
+
+.where-chip:hover {
+  border-color: rgba(142, 180, 255, 0.5);
+  color: var(--accent);
+}
+
+.where-modal {
+  z-index: 50;
+}
+
+.where-sheet {
+  width: min(520px, 100%);
+  max-height: min(92vh, 900px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 20px;
+  background: #171b25;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  animation: pop 0.25s ease;
+}
+
+.where-sheet__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.where-sheet__kicker,
+.where-sheet__detail,
+.where-sheet__day,
+.where-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.where-sheet__head h2 {
+  margin: 2px 0 0;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 1.12rem;
+  letter-spacing: -0.03em;
+}
+
+.where-sheet__now {
+  margin: 6px 0 0;
+  color: var(--accent);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.where-sheet__src {
+  flex-shrink: 0;
+  color: var(--accent);
+  font-size: 0.75rem;
+}
+
+.where-days {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.where-days__btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 2px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(11, 13, 18, 0.4);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.where-days__btn span:first-child {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.where-days__btn span:last-of-type {
+  font-size: 0.64rem;
+}
+
+.where-days__btn.is-on {
+  border-color: rgba(142, 180, 255, 0.55);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.where-days__btn.is-today:not(.is-on) {
+  color: #e8ecf4;
+}
+
+.where-days__dot {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ideal);
+}
+
+.where-weeks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.where-slots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.where-slot {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(11, 13, 18, 0.35);
+}
+
+.where-slot--now {
+  border-color: rgba(61, 214, 140, 0.45);
+  background: rgba(61, 214, 140, 0.08);
+}
+
+.where-slot--past {
+  opacity: 0.55;
+}
+
+.where-slot__time {
+  display: flex;
+  flex-direction: column;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #c9d2e4;
+}
+
+.where-slot__cab {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: 800;
+  font-size: 0.88rem;
+}
+
+.where-slot__cab span {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(232, 236, 244, 0.08);
+  color: var(--muted);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.where-slot__live {
+  color: var(--ideal) !important;
+  background: rgba(61, 214, 140, 0.12) !important;
+}
+
+.where-slot__title {
+  margin: 3px 0 0;
+  font-size: 0.84rem;
+}
+
+.where-slot__groups {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
 .card__note {
   margin: 4px 0 0;
   color: #9aa3b5;
@@ -1643,6 +1892,14 @@
 
   .card__prof {
     font-size: 0.86rem;
+  }
+
+  .where-chip {
+    font-size: 0.76rem;
+  }
+
+  .where-days {
+    gap: 4px;
   }
 
   .card__links li {

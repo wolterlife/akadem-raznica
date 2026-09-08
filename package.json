@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "fetch:vstu": "node scripts/fetch-vstu-schedule.mjs",
+    "prebuild": "node scripts/fetch-vstu-schedule.mjs",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
