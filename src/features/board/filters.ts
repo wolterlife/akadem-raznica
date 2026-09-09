@@ -300,6 +300,8 @@ export function orderedColumnItems(
 export interface BoardStats {
   totalD: number
   totalM: number
+  sureD: number
+  sureM: number
   leftD: number
   leftM: number
   mustD: number
@@ -340,6 +342,8 @@ export function computeStats(items: Assessment[]): BoardStats {
   return {
     totalD: owned('D').length,
     totalM: owned('M').length,
+    sureD: owned('D').filter((item) => !item.pending).length,
+    sureM: owned('M').filter((item) => !item.pending).length,
     leftD: d.left,
     leftM: m.left,
     mustD: d.must,

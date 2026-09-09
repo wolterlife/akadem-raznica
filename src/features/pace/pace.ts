@@ -77,6 +77,19 @@ export function hasRange(person: PersonPace | null): person is PersonPace {
   return Boolean(person && isDay(person.startedAt) && isDay(person.due))
 }
 
+/** Display-only: remaining as if «под вопросом» cards were never on the board. */
+export function personWithoutPending(
+  person: PersonPace,
+  pendingLeft: number,
+  total: number,
+): PersonPace {
+  const samples: Record<string, number> = {}
+  for (const [date, left] of Object.entries(person.samples)) {
+    samples[date] = Math.min(total, Math.max(0, left - pendingLeft))
+  }
+  return { ...person, samples }
+}
+
 function parsePerson(val: unknown): PersonPace | null {
   if (!val || typeof val !== 'object') return null
   const rec = val as Record<string, unknown>

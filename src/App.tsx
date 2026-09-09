@@ -44,7 +44,7 @@ export default function App() {
   const [sortKey, setSortKey] = useState<SortKey>('links')
   const [query, setQuery] = useState('')
 
-  const { hoveredId, onCardHover } = useCardHover()
+  const { hoveredId, hoveredCol, onCardHover } = useCardHover()
   const { identity, setIdentity, online, editorsByCard, renameSelf } =
     usePresenceSession(shared, editing?.id ?? null)
 
@@ -75,6 +75,14 @@ export default function App() {
   const totals = useMemo(
     () => ({ D: stats.totalD, M: stats.totalM }),
     [stats.totalD, stats.totalM],
+  )
+  const must = useMemo(
+    () => ({ D: stats.mustD, M: stats.mustM }),
+    [stats.mustD, stats.mustM],
+  )
+  const sure = useMemo(
+    () => ({ D: stats.sureD, M: stats.sureM }),
+    [stats.sureD, stats.sureM],
   )
   const { pace, setDates } = usePace(
     shared,
@@ -127,6 +135,7 @@ export default function App() {
         visible={visible}
         sortKey={sortKey}
         hoveredId={hoveredId}
+        hoveredCol={hoveredCol}
         onHoverChange={onCardHover}
         editorsByCard={editorsByCard}
         onEdit={setEditing}
@@ -137,12 +146,21 @@ export default function App() {
         pace={pace}
         totals={totals}
         remaining={remaining}
+        must={must}
+        sure={sure}
         onDates={setDates}
       />
 
       <p className="hint">
-        Наведи или удержи палец — подсветятся связанные карточки. Перенос из
-        своего столбца в Done закрывает предмет только у тебя.
+        <span className="hint__desk">
+          Наведи на карточку — подсветятся связанные. Перетащи в другой столбец,
+          чтобы перенести.
+        </span>
+        <span className="hint__mobile">
+          Нажми карточку — подсветятся связи, внизу появятся кнопки перехода.
+          Перенос — кнопками на карточке.
+        </span>{' '}
+        Перенос из своего столбца в Done закрывает предмет только у тебя.
         {shared ? ' · синк 15с' : ''}
       </p>
 

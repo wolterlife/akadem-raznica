@@ -1,6 +1,6 @@
-import { useRef, type MouseEvent, type PointerEvent, type TouchEvent } from 'react'
+import type { MouseEvent, PointerEvent, TouchEvent } from 'react'
 import { useDraggable } from '@dnd-kit/core'
-import type { Assessment, ColumnId, MatchKind, Owner } from '../../types'
+import type { Assessment, ColumnId, MatchKind } from '../../types'
 import { TYPE_LABEL } from '../../types'
 import type { PresenceUser } from '../../presence'
 import { getCardBadges, listCardRelations, relationCaption } from './badges'
@@ -8,7 +8,7 @@ import { ProfessorPhotoButton } from './ProfessorPhoto'
 import { professorLabel } from '../../professors'
 import { WhereChip } from '../whereabouts/WhereChip'
 import { closedCounterpart } from '../../sync'
-import { columnOwner, isDoneFor, isFullyDone, noteFor } from './progress'
+import { columnOwner, isDoneFor, isFullyDone, moveTargets, noteFor } from './progress'
 
 interface CardProps {
   item: Assessment
@@ -20,11 +20,15 @@ interface CardProps {
   onHoverChange?: (id: string | null, col?: string | null) => void
   dragId?: string
   colId?: ColumnId
+  compact?: boolean
+  onMove?: (id: string, column: ColumnId, fromColumn?: ColumnId) => void
 }
 
-const LONG_PRESS_MS = 420
+function stopDrag(e: PointerEvent | MouseEvent | TouchEvent) {
+  e.stopPropagation()
+}
 
-function viewOwner(colId?: ColumnId): Owner | null {
+function viewOwner(colId?: ColumnId) {
   return colId ? columnOwner(colId) : null
 }
 
@@ -38,51 +42,17 @@ export function Card({
   onHoverChange,
   dragId,
   colId,
+  compact = false,
+  onMove,
 }: CardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({ id: dragId ?? item.id })
-  const pressTimer = useRef<number | null>(null)
-  const pressed = useRef(false)
+    useDraggable({ id: dragId ?? item.id, disabled: compact })
 
   const style = transform
     ? {
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
       }
     : undefined
-
-  function stopDrag(e: PointerEvent | MouseEvent | TouchEvent) {
-    e.stopPropagation()
-  }
-
-  function clearPress() {
-    if (pressTimer.current != null) {
-      window.clearTimeout(pressTimer.current)
-      pressTimer.current = null
-    }
-  }
-
-  function onTouchStart(_e: TouchEvent) {
-    clearPress()
-    pressed.current = false
-    pressTimer.current = window.setTimeout(() => {
-      pressed.current = true
-      onHoverChange?.(item.id, colId)
-    }, LONG_PRESS_MS)
-  }
-
-  function onTouchEnd() {
-    clearPress()
-    if (pressed.current) {
-      window.setTimeout(() => onHoverChange?.(null), 1600)
-      pressed.current = false
-    }
-  }
-
-  function onTouchCancel() {
-    clearPress()
-    pressed.current = false
-    onHoverChange?.(null)
-  }
 
   const both = item.owners.includes('D') && item.owners.includes('M')
   const owner = viewOwner(colId)
@@ -100,6 +70,12 @@ export function Card({
   const showBothNotes = colId === 'done' || (!owner && both)
   const noteD = noteFor(item, 'D')
   const noteM = noteFor(item, 'M')
+  const moves = compact && colId && onMove ? moveTargets(item, colId) : []
+
+  function toggleLinks() {
+    if (linkState === 'focus') onHoverChange?.(null)
+    else onHoverChange?.(item.id, colId)
+  }
 
   return (
     <article
@@ -107,16 +83,16 @@ export function Card({
       style={style}
       data-card-id={item.id}
       data-col={colId}
-      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} ${both ? 'card--shared-owners' : ''} ${done ? 'card--in-done' : ''} ${item.pending ? 'card--pending' : ''} match-${match} card--link-${linkState}`}
-      {...listeners}
-      {...attributes}
-      onMouseEnter={() => onHoverChange?.(item.id, colId)}
-      onMouseLeave={() => onHoverChange?.(null)}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-      onTouchCancel={onTouchCancel}
-      onContextMenu={(e) => {
-        if (pressed.current) e.preventDefault()
+      className={`card ${isDragging ? 'card--dragging' : ''} ${editors.length ? 'card--busy' : ''} ${both ? 'card--shared-owners' : ''} ${done ? 'card--in-done' : ''} ${item.pending ? 'card--pending' : ''} match-${match} card--link-${linkState} ${compact ? 'card--compact' : ''}`}
+      {...(compact ? {} : { ...listeners, ...attributes })}
+      onMouseEnter={() => {
+        if (!compact) onHoverChange?.(item.id, colId)
+      }}
+      onMouseLeave={() => {
+        if (!compact) onHoverChange?.(null)
+      }}
+      onClick={() => {
+        if (compact) toggleLinks()
       }}
     >
       {editors.length > 0 && (
@@ -243,29 +219,51 @@ export function Card({
         personalNote && <p className="card__note">{personalNote}</p>
       )}
 
-      <footer className="card__owners">
-        {item.owners.map((o) => {
-          const closed = isDoneFor(item, o)
-          return (
-            <span
-              key={o}
-              className={`owner owner--${o} ${owner === o ? 'owner--here' : ''} ${closed ? 'owner--done' : ''}`}
-              title={
-                closed
-                  ? `${o} уже закрыл этот предмет`
-                  : `${o} ещё не закрыл`
-              }
-              aria-label={
-                closed
-                  ? `${o} уже закрыл этот предмет`
-                  : `${o} ещё не закрыл`
-              }
-            >
-              {o}
-            </span>
-          )
-        })}
-      </footer>
+      <div className="card__foot">
+        {moves.length > 0 ? (
+          <div className="card__moves" aria-label="Перенести карточку">
+            {moves.map((move) => (
+              <button
+                key={move.col}
+                type="button"
+                className={`card__move ${move.col === 'done' ? 'card__move--done' : ''}`}
+                onPointerDown={stopDrag}
+                onMouseDown={stopDrag}
+                onTouchStart={stopDrag}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onMove?.(item.id, move.col, colId)
+                }}
+              >
+                {move.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        <footer className="card__owners">
+          {item.owners.map((o) => {
+            const closed = isDoneFor(item, o)
+            return (
+              <span
+                key={o}
+                className={`owner owner--${o} ${owner === o ? 'owner--here' : ''} ${closed ? 'owner--done' : ''}`}
+                title={
+                  closed
+                    ? `${o} уже закрыл этот предмет`
+                    : `${o} ещё не закрыл`
+                }
+                aria-label={
+                  closed
+                    ? `${o} уже закрыл этот предмет`
+                    : `${o} ещё не закрыл`
+                }
+              >
+                {o}
+              </span>
+            )
+          })}
+        </footer>
+      </div>
     </article>
   )
 }

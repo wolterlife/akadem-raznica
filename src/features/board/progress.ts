@@ -66,6 +66,51 @@ export function notesPayload(
   return Object.keys(notes).length ? { notes } : {}
 }
 
+export function visibleColumnsOf(item: Assessment): ColumnId[] {
+  if (isFullyDone(item)) return ['done']
+  if (isShared(item)) {
+    const cols: ColumnId[] = []
+    if (isOpenFor(item, 'D')) cols.push('d')
+    if (isOpenFor(item, 'M')) cols.push('m')
+    return cols
+  }
+  return [item.column === 'done' ? 'done' : item.column]
+}
+
+function doneKey(item: Assessment) {
+  return doneOwnersOf(item).slice().sort().join(',')
+}
+
+export function moveTargets(
+  item: Assessment,
+  from: ColumnId,
+): { col: ColumnId; label: string }[] {
+  const targets: { col: ColumnId; label: string }[] = []
+  const options: ColumnId[] =
+    from === 'done' ? ['d', 'm'] : ['done']
+
+  for (const col of options) {
+    if (col === from) continue
+    if (col !== 'done') {
+      const owner = columnOwner(col)
+      if (owner && !item.owners.includes(owner)) continue
+    }
+    const next = applyMove(item, col, from)
+    if (next === item) continue
+    if (next.column === item.column && doneKey(next) === doneKey(item)) continue
+    targets.push({
+      col,
+      label:
+        col === 'done'
+          ? 'Закрыть'
+          : from === 'done'
+            ? `вернуть в ${col.toUpperCase()}`
+            : `в ${col.toUpperCase()}`,
+    })
+  }
+  return targets
+}
+
 /** Move a card between columns. Shared cards credit/uncredit per person. */
 export function applyMove(
   item: Assessment,

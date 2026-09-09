@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   DndContext,
   DragOverlay,
   MouseSensor,
-  TouchSensor,
   closestCorners,
   pointerWithin,
   useSensor,
@@ -13,7 +12,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 import { COLUMNS } from '../../data'
-import { getMatchKind, getRelatedLinks } from '../../sync'
+import { getMatchKind, getRelatedLinks, type LinkReason } from '../../sync'
 import type { Assessment, ColumnId } from '../../types'
 import type { PresenceUser } from '../../presence'
 import { Card } from './Card'
@@ -23,13 +22,14 @@ import {
   orderedColumnItems,
   type SortKey,
 } from './filters'
-import { isFullyDone } from './progress'
+import { isFullyDone, visibleColumnsOf } from './progress'
 
 interface Props {
   items: Assessment[]
   visible: Assessment[]
   sortKey: SortKey
   hoveredId: string | null
+  hoveredCol: string | null
   onHoverChange: (id: string | null, col?: string | null) => void
   editorsByCard: Map<string, PresenceUser[]>
   onEdit: (item: Assessment) => void
@@ -37,6 +37,7 @@ interface Props {
 }
 
 const COLUMN_IDS: ColumnId[] = ['d', 'm', 'done']
+const COMPACT_MQ = '(max-width: 720px), (pointer: coarse)'
 
 /** Prefer the column under the pointer so Done isn't stolen by a card in M. */
 const columnFirstCollision: CollisionDetection = (args) => {
@@ -60,22 +61,56 @@ function parseDrag(dragId: string): { id: string; col?: ColumnId } {
   }
 }
 
+function useCompactBoard() {
+  const [compact, setCompact] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(COMPACT_MQ).matches : false,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(COMPACT_MQ)
+    const onChange = () => setCompact(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return compact
+}
+
+function columnTitle(id: ColumnId) {
+  return COLUMNS.find((c) => c.id === id)?.title ?? id.toUpperCase()
+}
+
+function reasonLabel(reasons: LinkReason[]): string {
+  const hasSub = reasons.includes('subject')
+  const hasProf = reasons.includes('professor')
+  if (hasSub && hasProf) return 'предмет и препод'
+  if (hasSub) return 'тот же предмет'
+  if (hasProf) return 'тот же преподаватель'
+  return 'связь'
+}
+
+function jumpToCard(id: string, preferCol?: string) {
+  const nodes = [
+    ...document.querySelectorAll<HTMLElement>(`[data-card-id="${id}"]`),
+  ]
+  const el =
+    (preferCol && nodes.find((n) => n.dataset.col === preferCol)) || nodes[0]
+  el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
 export function KanbanBoard({
   items,
   visible,
   sortKey,
   hoveredId,
+  hoveredCol,
   onHoverChange,
   editorsByCard,
   onEdit,
   onMove,
 }: Props) {
+  const compact = useCompactBoard()
   const [activeId, setActiveId] = useState<string | null>(null)
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 220, tolerance: 10 },
-    }),
   )
 
   const activeItem = useMemo(() => {
@@ -98,6 +133,25 @@ export function KanbanBoard({
     }
   }, [visible, items, sortKey])
 
+  const relatedCards = useMemo(() => {
+    if (!hoveredId || !relatedLinks) return []
+    const shown = new Set(
+      [...columnItems.d, ...columnItems.m, ...columnItems.done].map((i) => i.id),
+    )
+    return items
+      .filter(
+        (item) =>
+          item.id !== hoveredId &&
+          relatedLinks.has(item.id) &&
+          shown.has(item.id),
+      )
+      .map((item) => ({
+        item,
+        reasons: relatedLinks.get(item.id) ?? [],
+        cols: visibleColumnsOf(item),
+      }))
+  }, [hoveredId, items, relatedLinks, columnItems])
+
   function linkStateFor(id: string): 'idle' | 'focus' | 'related' | 'dim' {
     if (!relatedLinks) return 'idle'
     if (id === hoveredId) return 'focus'
@@ -119,6 +173,8 @@ export function KanbanBoard({
         linkState={linkStateFor(item.id)}
         onHoverChange={onHoverChange}
         onEdit={onEdit}
+        compact={compact}
+        onMove={onMove}
       />
     )
   }
@@ -186,6 +242,63 @@ export function KanbanBoard({
           )
         })}
       </div>
+
+      {compact && hoveredId ? (
+        <div className="board-links" role="status">
+          <div className="board-links__head">
+            <p>Связи</p>
+            <button
+              type="button"
+              className="board-links__clear"
+              onClick={() => onHoverChange(null)}
+            >
+              сбросить
+            </button>
+          </div>
+          {relatedCards.length === 0 ? (
+            <p className="board-links__empty">Нет связанных карточек</p>
+          ) : (
+            <ul className="board-links__list">
+              {hoveredId ? (
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => jumpToCard(hoveredId, hoveredCol ?? undefined)}
+                  >
+                    <span className="board-links__name">
+                      {items.find((i) => i.id === hoveredId)?.short}
+                      {hoveredCol
+                        ? ` · ${columnTitle(hoveredCol as ColumnId)}`
+                        : ''}
+                    </span>
+                    <span className="board-links__why">выбранная</span>
+                  </button>
+                </li>
+              ) : null}
+              {relatedCards.map(({ item, reasons, cols }) => {
+                const prefer =
+                  cols.find((c) => c !== hoveredCol) ?? cols[0]
+                return (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      onClick={() => jumpToCard(item.id, prefer)}
+                    >
+                      <span className="board-links__name">
+                        {item.short}
+                        {cols.length
+                          ? ` · ${cols.map(columnTitle).join('/')}`
+                          : ''}
+                      </span>
+                      <span className="board-links__why">{reasonLabel(reasons)}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
+      ) : null}
 
       <DragOverlay>
         {activeItem ? (

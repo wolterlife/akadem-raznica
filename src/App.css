@@ -523,9 +523,23 @@
   animation: rise 0.45s ease both;
 }
 
+.card--compact {
+  cursor: pointer;
+  touch-action: pan-y;
+  padding-bottom: 10px;
+  scroll-margin-top: 52px;
+  scroll-margin-bottom: 168px;
+}
+
 @media (pointer: fine) {
-  .card {
+  .card:not(.card--compact) {
     touch-action: none;
+  }
+}
+
+@media (pointer: coarse) {
+  .card:hover {
+    transform: none;
   }
 }
 
@@ -1310,12 +1324,62 @@
   font-size: 0.68rem;
 }
 
+.card__foot {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.card:not(.card--compact) .card__foot {
+  margin: 0;
+}
+
+.card__moves {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.card__move {
+  flex: 1;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid rgba(232, 236, 244, 0.16);
+  border-radius: 10px;
+  background: rgba(11, 13, 18, 0.45);
+  color: #e8ecf4;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.card__move--done {
+  border-color: rgba(125, 202, 168, 0.4);
+  background: rgba(125, 202, 168, 0.14);
+  color: #b8e8d0;
+}
+
 .card__owners {
   position: absolute;
   right: 8px;
   bottom: 7px;
   display: flex;
   gap: 3px;
+}
+
+.card--compact .card__foot {
+  margin-top: 10px;
+}
+
+.card--compact .card__owners {
+  position: static;
+  margin-left: auto;
+  flex-shrink: 0;
+  padding-bottom: 4px;
 }
 
 .owner {
@@ -1355,11 +1419,32 @@
   text-align: center;
 }
 
+.hint__mobile {
+  display: none;
+}
+
 .pace {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   margin-top: 28px;
+}
+
+.pace__scope {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pace__scope-label {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .burn {
@@ -1794,6 +1879,90 @@
   display: none;
 }
 
+.board-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 21;
+  padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: rgba(11, 13, 18, 0.96);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+}
+
+.board-links__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.board-links__head p {
+  margin: 0;
+  font-weight: 800;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 0.92rem;
+}
+
+.board-links__clear {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.board-links__empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.board-links__list {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0 0 2px;
+  list-style: none;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.board-links__list li {
+  flex: 0 0 auto;
+}
+
+.board-links__list button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  max-width: 200px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(23, 27, 37, 0.95);
+  color: #e8ecf4;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.board-links__name {
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.board-links__why {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
 @media (max-width: 1100px) {
   .top {
     grid-template-columns: 1fr;
@@ -1820,7 +1989,7 @@
   .column {
     min-height: auto;
     scroll-margin-top: 8px;
-    scroll-margin-bottom: 88px;
+    scroll-margin-bottom: 168px;
   }
 
   .column__head {
@@ -1850,8 +2019,25 @@
     padding-bottom: 96px;
   }
 
+  .app:has(.board-links) {
+    padding-bottom: 176px;
+  }
+
   .legend {
     display: none;
+  }
+
+  .hint__desk {
+    display: none;
+  }
+
+  .hint__mobile {
+    display: inline;
+  }
+
+  .board-links {
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding: 8px 10px 10px;
   }
 
   .board-jump a {
@@ -1882,7 +2068,7 @@
   }
 
   .card {
-    padding: 10px 34px 38px 12px;
+    padding: 10px 34px 12px 12px;
   }
 
   .card__subject {
@@ -1913,5 +2099,15 @@
 
   .search {
     flex: 1 1 100%;
+  }
+}
+
+@media (pointer: coarse) {
+  .hint__desk {
+    display: none;
+  }
+
+  .hint__mobile {
+    display: inline;
   }
 }
