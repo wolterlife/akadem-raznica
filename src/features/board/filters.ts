@@ -9,13 +9,10 @@ import {
 import { isFullyDone, isOpenFor, isPendingDone, isShared } from './progress'
 import { isUnknownProfessor, UNKNOWN_PROFESSOR } from '../../professors'
 
-export type MatchFilter = 'all' | 'ideal' | 'alike' | 'subject' | 'professor'
-
 export type TypeFilter = 'all' | 'exam' | 'credits' | AssessmentType
 export type SortKey = 'subject' | 'type' | 'prof' | 'links'
 
 export interface BoardFilters {
-  matchFilter: MatchFilter
   typeFilter: TypeFilter
   profFilter: string
   sortKey: SortKey
@@ -105,15 +102,10 @@ export function filterAndSortItems(
   items: Assessment[],
   filters: BoardFilters,
 ): Assessment[] {
-  const { matchFilter, typeFilter, profFilter, sortKey, query } = filters
+  const { typeFilter, profFilter, sortKey, query } = filters
 
   const filtered = items.filter((item) => {
     if (!matchesQuery(item, query)) return false
-
-    if (matchFilter !== 'all') {
-      if (isFullyDone(item) && !isPendingDone(item)) return true
-      if (getMatchKind(item, items) !== matchFilter) return false
-    }
 
     if (typeFilter !== 'all') {
       if (typeFilter === 'exam' && item.type !== 'exam') return false

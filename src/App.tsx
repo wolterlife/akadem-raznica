@@ -6,7 +6,6 @@ import {
   filterAndSortItems,
   listProfessors,
   listSubjects,
-  type MatchFilter,
   type SortKey,
   type TypeFilter,
 } from './features/board/filters'
@@ -33,12 +32,10 @@ export default function App() {
     moveToColumn,
     upsert,
     remove,
-    resetDemo,
   } = useBoardItems()
 
   const [editing, setEditing] = useState<Assessment | null>(null)
   const [creating, setCreating] = useState(false)
-  const [matchFilter, setMatchFilter] = useState<MatchFilter>('all')
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
   const [profFilter, setProfFilter] = useState(loadProfFilter)
   const [sortKey, setSortKey] = useState<SortKey>('links')
@@ -59,13 +56,12 @@ export default function App() {
   const visible = useMemo(
     () =>
       filterAndSortItems(items, {
-        matchFilter,
         typeFilter,
         profFilter,
         sortKey,
         query,
       }),
-    [items, matchFilter, typeFilter, profFilter, sortKey, query],
+    [items, typeFilter, profFilter, sortKey, query],
   )
   const stats = useMemo(() => computeStats(items), [items])
   const remaining = useMemo(
@@ -113,18 +109,15 @@ export default function App() {
         online={online}
         identity={identity}
         professors={professorOptions}
-        matchFilter={matchFilter}
         typeFilter={typeFilter}
         profFilter={profFilter}
         sortKey={sortKey}
         query={query}
         refreshing={refreshing}
-        onMatchFilter={setMatchFilter}
         onTypeFilter={setTypeFilter}
         onProfFilter={setProfFilter}
         onSortKey={setSortKey}
         onQuery={setQuery}
-        onResetDemo={resetDemo}
         onRenameSelf={renameSelf}
         onRefresh={() => void refreshFromDb()}
         onCreate={() => setCreating(true)}

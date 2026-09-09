@@ -1,11 +1,6 @@
 import type { Identity, PresenceUser } from '../../presence'
 import type { SyncStatus } from '../../sync'
-import type {
-  BoardStats,
-  MatchFilter,
-  SortKey,
-  TypeFilter,
-} from '../board/filters'
+import type { BoardStats, SortKey, TypeFilter } from '../board/filters'
 
 interface Props {
   syncStatus: SyncStatus
@@ -14,18 +9,15 @@ interface Props {
   online: PresenceUser[]
   identity: Identity | null
   professors: string[]
-  matchFilter: MatchFilter
   typeFilter: TypeFilter
   profFilter: string
   sortKey: SortKey
   query: string
   refreshing: boolean
-  onMatchFilter: (v: MatchFilter) => void
   onTypeFilter: (v: TypeFilter) => void
   onProfFilter: (v: string) => void
   onSortKey: (v: SortKey) => void
   onQuery: (v: string) => void
-  onResetDemo: () => void
   onRenameSelf: () => void
   onRefresh: () => void
   onCreate: () => void
@@ -45,18 +37,15 @@ export function BoardHeader({
   online,
   identity,
   professors,
-  matchFilter,
   typeFilter,
   profFilter,
   sortKey,
   query,
   refreshing,
-  onMatchFilter,
   onTypeFilter,
   onProfFilter,
   onSortKey,
   onQuery,
-  onResetDemo,
   onRenameSelf,
   onRefresh,
   onCreate,
@@ -187,44 +176,6 @@ export function BoardHeader({
             />
           </label>
 
-          <div className="filters" role="group" aria-label="Фильтр совпадений">
-            <button
-              className={matchFilter === 'all' ? 'chip chip--on' : 'chip'}
-              onClick={() => onMatchFilter('all')}
-              type="button"
-            >
-              все
-            </button>
-            <button
-              className={matchFilter === 'ideal' ? 'chip chip--on' : 'chip'}
-              onClick={() => onMatchFilter('ideal')}
-              type="button"
-            >
-              1 в 1
-            </button>
-            <button
-              className={matchFilter === 'alike' ? 'chip chip--on' : 'chip'}
-              onClick={() => onMatchFilter('alike')}
-              type="button"
-            >
-              почти
-            </button>
-            <button
-              className={matchFilter === 'subject' ? 'chip chip--on' : 'chip'}
-              onClick={() => onMatchFilter('subject')}
-              type="button"
-            >
-              общий предм.
-            </button>
-            <button
-              className={matchFilter === 'professor' ? 'chip chip--on' : 'chip'}
-              onClick={() => onMatchFilter('professor')}
-              type="button"
-            >
-              общий преп.
-            </button>
-          </div>
-
           <label className="filter-select">
             <span>тип</span>
             <select
@@ -270,9 +221,6 @@ export function BoardHeader({
             </select>
           </label>
 
-          <button className="btn btn--ghost" type="button" onClick={onResetDemo}>
-            демо
-          </button>
           {shared && identity && (
             <button
               className="btn btn--ghost btn--me"

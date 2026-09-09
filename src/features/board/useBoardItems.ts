@@ -126,11 +126,6 @@ export function useBoardItems() {
     setItems((prev) => prev.filter((p) => p.id !== id))
   }
 
-  function resetDemo() {
-    if (!confirm('Сбросить до демо-данных?')) return
-    setItems(SEED)
-  }
-
   return {
     shared,
     items,
@@ -140,6 +135,5 @@ export function useBoardItems() {
     moveToColumn,
     upsert,
     remove,
-    resetDemo,
   }
 }
