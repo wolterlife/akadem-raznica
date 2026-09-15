@@ -1,6 +1,8 @@
 import { useState, type PointerEvent } from 'react'
 import {
   addDays,
+  completeSessions,
+  dateInSessions,
   diffDays,
   formatDay,
   idealLeft,
@@ -137,49 +139,34 @@ export function BurndownChart({ person, total, left, today }: Props) {
   const todayX = xAt(today)
   const showToday = begun && diffDays(today, due) >= 0
 
-  const sessionStart = person.sessionStart
-  const sessionEnd = person.sessionEnd
-  const sessionOk =
-    Boolean(sessionStart && sessionEnd) &&
-    diffDays(sessionStart!, sessionEnd!) >= 0
-  // Overlap of session with chart range [start, due]
-  const intersects =
-    sessionOk &&
-    diffDays(start, sessionEnd!) >= 0 &&
-    diffDays(sessionStart!, due) >= 0
-  const sessionFrom = intersects
-    ? clampDate(sessionStart!, start, due)
-    : null
-  const sessionTo = intersects ? clampDate(sessionEnd!, start, due) : null
-  const showSession = Boolean(
-    sessionFrom &&
-      sessionTo &&
-      diffDays(sessionFrom, sessionTo) >= 0,
-  )
-
-  const sessionX = showSession ? xAt(sessionFrom!) : 0
-  const sessionW = showSession
-    ? Math.max(2, xAt(sessionTo!) - xAt(sessionFrom!))
-    : 0
+  const sessionBands = completeSessions(person.sessions ?? [])
+    .map((session) => {
+      const intersects =
+        diffDays(start, session.end) >= 0 && diffDays(session.start, due) >= 0
+      if (!intersects) return null
+      const from = clampDate(session.start, start, due)
+      const to = clampDate(session.end, start, due)
+      if (diffDays(from, to) < 0) return null
+      return {
+        key: `${session.start}:${session.end}`,
+        x: xAt(from),
+        width: Math.max(2, xAt(to) - xAt(from)),
+      }
+    })
+    .filter((b): b is { key: string; x: number; width: number } => b != null)
 
   function onMove(e: PointerEvent<SVGSVGElement>) {
     const x = svgX(e.currentTarget, e.clientX)
     const date = dateAtX(x)
     const remain = idealLeft(total, start, due, date)
     const actual = actualPts.find((s) => s.date === date)?.remaining ?? null
-    const inSession = Boolean(
-      sessionStart &&
-        sessionEnd &&
-        diffDays(sessionStart, date) >= 0 &&
-        diffDays(date, sessionEnd) >= 0,
-    )
     setHover({
       date,
       x: xAt(date),
       idealRemain: remain,
       shouldBeDone: Math.round(total - remain),
       actualRemain: actual,
-      inSession,
+      inSession: dateInSessions(date, person.sessions ?? []),
     })
   }
 
@@ -213,15 +200,16 @@ export function BurndownChart({ person, total, left, today }: Props) {
           </g>
         ))}
 
-        {showSession ? (
+        {sessionBands.map((band) => (
           <rect
+            key={band.key}
             className="burn__session"
-            x={sessionX}
+            x={band.x}
             y={PAD.t}
-            width={sessionW}
+            width={band.width}
             height={innerH}
           />
-        ) : null}
+        ))}
 
         {xTicks(start, due).map((key) => (
           <text

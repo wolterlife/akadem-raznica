@@ -3,11 +3,13 @@ import type { Owner } from '../../types'
 import { loadPaceCountPending, savePaceCountPending } from '../../prefs'
 import { BurndownChart } from './BurndownChart'
 import {
+  completeSessions,
   formatDay,
   hasRange,
   personWithoutPending,
   snapshotFor,
   todayKey,
+  type PaceSession,
   type PaceState,
   type PersonDatePatch,
   type PersonPace,
@@ -91,6 +93,25 @@ function DateField({
   )
 }
 
+function sessionLead(sessions: PaceSession[]) {
+  const done = completeSessions(sessions)
+  if (done.length === 0) return ''
+  if (done.length === 1) {
+    const s = done[0]!
+    return ` · сессия ${formatDay(s.start)}–${formatDay(s.end)}`
+  }
+  const n = done.length
+  const n10 = n % 10
+  const n100 = n % 100
+  const word =
+    n10 === 1 && n100 !== 11
+      ? 'сессия'
+      : n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)
+        ? 'сессии'
+        : 'сессий'
+  return ` · ${n} ${word}`
+}
+
 export function BurndownPanel({
   pace,
   totals,
@@ -125,7 +146,8 @@ export function BurndownPanel({
         const person = view.person
         const snap = person ? snapshotFor(total, left, person, today) : null
         const ready = hasRange(person)
-        const hasSession = Boolean(person?.sessionStart && person?.sessionEnd)
+        const sessions = person?.sessions ?? []
+        const drawnSessions = completeSessions(sessions)
 
         return (
           <article key={owner} className="burn">
@@ -138,9 +160,7 @@ export function BurndownPanel({
                         includePending ? 'все карточки' : 'обязательные карточки'
                       } должны быть закрыты`
                     : 'старт можно поставить позже — пока только готовитесь'}
-                  {hasSession
-                    ? ` · сессия ${formatDay(person!.sessionStart!)}–${formatDay(person!.sessionEnd!)}`
-                    : ''}
+                  {sessionLead(sessions)}
                 </p>
               </div>
             </header>
@@ -163,22 +183,71 @@ export function BurndownPanel({
                   />
                 </div>
               </div>
-              <div className="burn__dates-group" role="group" aria-label="Сессия">
-                <p className="burn__dates-label">сессия</p>
-                <div className="burn__dates-row">
-                  <DateField
-                    label="начало"
-                    value={person?.sessionStart ?? ''}
-                    max={person?.sessionEnd || undefined}
-                    onChange={(sessionStart) => onDates(owner, { sessionStart })}
-                  />
-                  <DateField
-                    label="финиш"
-                    value={person?.sessionEnd ?? ''}
-                    min={person?.sessionStart || undefined}
-                    onChange={(sessionEnd) => onDates(owner, { sessionEnd })}
-                  />
+
+              <div className="burn__dates-group burn__sessions" role="group" aria-label="Сессии">
+                <div className="burn__sessions-head">
+                  <p className="burn__dates-label">сессии</p>
+                  <button
+                    type="button"
+                    className="burn__session-add"
+                    onClick={() =>
+                      onDates(owner, {
+                        sessions: [...sessions, { start: '', end: '' }],
+                      })
+                    }
+                  >
+                    + добавить
+                  </button>
                 </div>
+                {sessions.length === 0 ? (
+                  <p className="burn__sessions-empty">
+                    Можно отметить несколько периодов на графике
+                  </p>
+                ) : (
+                  <ul className="burn__session-list">
+                    {sessions.map((session, index) => (
+                      <li key={`${index}-${session.start}-${session.end}`} className="burn__session-row">
+                        <div className="burn__dates-row">
+                          <DateField
+                            label="начало"
+                            value={session.start}
+                            max={session.end || undefined}
+                            onChange={(start) => {
+                              const next = sessions.map((s, i) =>
+                                i === index
+                                  ? { ...s, start: start ?? '' }
+                                  : s,
+                              )
+                              onDates(owner, { sessions: next })
+                            }}
+                          />
+                          <DateField
+                            label="финиш"
+                            value={session.end}
+                            min={session.start || undefined}
+                            onChange={(end) => {
+                              const next = sessions.map((s, i) =>
+                                i === index ? { ...s, end: end ?? '' } : s,
+                              )
+                              onDates(owner, { sessions: next })
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="burn__session-remove"
+                          aria-label="Удалить сессию"
+                          onClick={() => {
+                            const next = sessions.filter((_, i) => i !== index)
+                            onDates(owner, { sessions: next })
+                          }}
+                        >
+                          ×
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
 
@@ -211,7 +280,7 @@ export function BurndownPanel({
                 <p className="burn__legend">
                   <span className="burn__legend-now">сейчас</span>
                   <span className="burn__legend-ideal">идеальный темп</span>
-                  {hasSession ? (
+                  {drawnSessions.length > 0 ? (
                     <span className="burn__legend-session">сессия</span>
                   ) : null}
                 </p>
@@ -219,8 +288,8 @@ export function BurndownPanel({
             ) : (
               <p className="burn__empty">
                 Укажи старт и дедлайн. Старт — день, с которого начинается
-                график, не обязательно сегодня. Сессию можно задать отдельно —
-                на графике отметится зона.
+                график, не обязательно сегодня. Сессии можно добавить отдельно —
+                на графике отметятся зоны.
               </p>
             )}
           </article>

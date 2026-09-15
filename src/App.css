@@ -1521,6 +1521,69 @@
   gap: 8px;
 }
 
+.burn__sessions {
+  flex: 1 1 100%;
+}
+
+.burn__sessions-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.burn__session-add {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.burn__sessions-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.burn__session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.burn__session-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.burn__session-row .burn__dates-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.burn__session-remove {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #c8c4d8;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
 .burn__due {
   display: flex;
   flex-direction: column;

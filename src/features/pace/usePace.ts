@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Owner } from '../../types'
 import {
+  emptyPace,
+  hasPaceData,
   loadLocalPace,
   mergePace,
   pacesEqual,
@@ -22,7 +24,12 @@ export function usePace(
   remaining: Record<Owner, number>,
 ) {
   const [pace, setPace] = useState<PaceState>(loadLocalPace)
-  const readyRef = useRef(!shared)
+  const paceRef = useRef(pace)
+  paceRef.current = pace
+
+  /** First Firebase pull finished (or local-only mode). */
+  const hydratedRef = useRef(!shared)
+  const skipPushRef = useRef(false)
   const remainingRef = useRef(remaining)
 
   useEffect(() => {
@@ -30,22 +37,44 @@ export function usePace(
   })
 
   useEffect(() => {
-    if (!ready) return
-    const today = todayKey()
-    setPace((prev) => stampSamples(prev, remainingRef.current, today))
+    if (!ready || !hydratedRef.current) return
+    setPace((prev) => stampSamples(prev, remainingRef.current, todayKey()))
   }, [ready, remaining.D, remaining.M])
 
   const applyRemote = useCallback(async () => {
     const remote = await pullPace()
-    setPace((local) => {
-      const next = mergePace(remote, local, remainingRef.current, todayKey())
-      return pacesEqual(next, local) ? local : next
-    })
-    readyRef.current = true
+    const local = paceRef.current
+    const next = mergePace(
+      remote ?? emptyPace(),
+      local,
+      remainingRef.current,
+      todayKey(),
+    )
+
+    // Don't echo this hydrate back as a full overwrite unless we must seed.
+    skipPushRef.current = true
+    hydratedRef.current = true
+
+    if (!pacesEqual(next, local)) {
+      setPace(next)
+    } else {
+      saveLocalPace(next)
+    }
+
+    // Computer had dates only in localStorage — upload once so phones see them.
+    const remoteEmpty = !hasPaceData(remote)
+    if (remoteEmpty && hasPaceData(next)) {
+      skipPushRef.current = false
+      await pushPace(next)
+      skipPushRef.current = true
+    }
   }, [])
 
   useEffect(() => {
-    if (!shared) return
+    if (!shared) {
+      hydratedRef.current = true
+      return
+    }
 
     let cancelled = false
     void (async () => {
@@ -53,7 +82,7 @@ export function usePace(
         if (!cancelled) await applyRemote()
       } catch (err) {
         console.error('[pace] pull failed', err)
-        readyRef.current = true
+        hydratedRef.current = true
       }
     })()
 
@@ -68,9 +97,16 @@ export function usePace(
   }, [shared, applyRemote])
 
   useEffect(() => {
-    if (!ready || !readyRef.current) return
+    if (!ready || !hydratedRef.current) return
+    if (skipPushRef.current) {
+      skipPushRef.current = false
+      saveLocalPace(pace)
+      return
+    }
+
     saveLocalPace(pace)
     if (!shared) return
+
     const t = window.setTimeout(() => {
       void pushPace(pace).catch((err) => console.error('[pace] push failed', err))
     }, 300)

@@ -5,12 +5,16 @@ import type { Owner } from '../../types'
 const PACE_PATH = 'pace'
 const PACE_KEY = 'akadem-raznica:pace'
 
+export interface PaceSession {
+  start: string
+  end: string
+}
+
 export interface PersonPace {
   due: string
   startedAt: string
-  /** Exam session window — shaded on the chart; optional. */
-  sessionStart?: string
-  sessionEnd?: string
+  /** Exam session windows — shaded on the chart. */
+  sessions: PaceSession[]
   samples: Record<string, number>
   updatedAt?: number
 }
@@ -76,6 +80,66 @@ function isDay(value: unknown): value is string {
   return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
 }
 
+function parseSessionRow(val: unknown): PaceSession | null {
+  if (!val || typeof val !== 'object') return null
+  const rec = val as Record<string, unknown>
+  const start = isDay(rec.start) ? rec.start : ''
+  const end = isDay(rec.end) ? rec.end : ''
+  if (!start && !end) return null
+  return { start, end }
+}
+
+/** Normalize stored sessions; migrates legacy sessionStart/sessionEnd. */
+export function normalizeSessions(
+  raw: unknown,
+  legacyStart?: unknown,
+  legacyEnd?: unknown,
+): PaceSession[] {
+  const out: PaceSession[] = []
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      const row = parseSessionRow(item)
+      if (row) out.push(row)
+    }
+  } else if (raw && typeof raw === 'object') {
+    // Firebase may store dense arrays as objects { "0": {...} }
+    for (const item of Object.values(raw as Record<string, unknown>)) {
+      const row = parseSessionRow(item)
+      if (row) out.push(row)
+    }
+  }
+  if (
+    out.length === 0 &&
+    isDay(legacyStart) &&
+    isDay(legacyEnd) &&
+    diffDays(legacyStart, legacyEnd) >= 0
+  ) {
+    out.push({ start: legacyStart, end: legacyEnd })
+  }
+  return out
+}
+
+/** Keep user-edited rows, including incomplete drafts. */
+export function sanitizeSessions(list: PaceSession[]): PaceSession[] {
+  return list.map((s) => ({
+    start: isDay(s.start) ? s.start : '',
+    end: isDay(s.end) ? s.end : '',
+  }))
+}
+
+/** Sessions with both ends set and start ≤ end — drawn on the chart. */
+export function completeSessions(sessions: PaceSession[]): PaceSession[] {
+  return sessions.filter(
+    (s) => isDay(s.start) && isDay(s.end) && diffDays(s.start, s.end) >= 0,
+  )
+}
+
+export function dateInSessions(date: string, sessions: PaceSession[]): boolean {
+  return completeSessions(sessions).some(
+    (s) => diffDays(s.start, date) >= 0 && diffDays(date, s.end) >= 0,
+  )
+}
+
 export function hasRange(person: PersonPace | null): person is PersonPace {
   return Boolean(person && isDay(person.startedAt) && isDay(person.due))
 }
@@ -98,7 +162,12 @@ function parsePerson(val: unknown): PersonPace | null {
   const rec = val as Record<string, unknown>
   const due = isDay(rec.due) ? rec.due : ''
   const startedAt = isDay(rec.startedAt) ? rec.startedAt : ''
-  if (!due && !startedAt) return null
+  const sessions = normalizeSessions(
+    rec.sessions,
+    rec.sessionStart,
+    rec.sessionEnd,
+  )
+  if (!due && !startedAt && sessions.length === 0) return null
   const samples: Record<string, number> = {}
   if (rec.samples && typeof rec.samples === 'object') {
     for (const [key, left] of Object.entries(rec.samples as Record<string, unknown>)) {
@@ -107,13 +176,10 @@ function parsePerson(val: unknown): PersonPace | null {
       }
     }
   }
-  const sessionStart = isDay(rec.sessionStart) ? rec.sessionStart : undefined
-  const sessionEnd = isDay(rec.sessionEnd) ? rec.sessionEnd : undefined
   return {
     due,
     startedAt,
-    ...(sessionStart ? { sessionStart } : {}),
-    ...(sessionEnd ? { sessionEnd } : {}),
+    sessions,
     samples,
     updatedAt: typeof rec.updatedAt === 'number' ? rec.updatedAt : undefined,
   }
@@ -151,8 +217,7 @@ export async function pushPace(pace: PaceState): Promise<void> {
 export type PersonDatePatch = {
   startedAt?: string | null
   due?: string | null
-  sessionStart?: string | null
-  sessionEnd?: string | null
+  sessions?: PaceSession[]
 }
 
 function dayOrEmpty(value: string | null | undefined, fallback: string) {
@@ -171,13 +236,12 @@ export function setPersonDates(
   const cur = prev[owner]
   const startedAt = dayOrEmpty(patch.startedAt, cur?.startedAt ?? '')
   const due = dayOrEmpty(patch.due, cur?.due ?? '')
-  const sessionStart = dayOrEmpty(
-    patch.sessionStart,
-    cur?.sessionStart ?? '',
-  )
-  const sessionEnd = dayOrEmpty(patch.sessionEnd, cur?.sessionEnd ?? '')
+  const sessions =
+    patch.sessions !== undefined
+      ? sanitizeSessions(patch.sessions)
+      : (cur?.sessions ?? [])
 
-  if (!startedAt && !due && !sessionStart && !sessionEnd) {
+  if (!startedAt && !due && sessions.length === 0) {
     return { ...prev, [owner]: null }
   }
 
@@ -190,8 +254,7 @@ export function setPersonDates(
     [owner]: {
       startedAt,
       due,
-      ...(sessionStart ? { sessionStart } : {}),
-      ...(sessionEnd ? { sessionEnd } : {}),
+      sessions,
       samples,
       updatedAt: Date.now(),
     },
@@ -220,6 +283,17 @@ export function stampSamples(
   return changed ? next : prev
 }
 
+export function hasPaceData(pace: PaceState | null | undefined): boolean {
+  if (!pace) return false
+  for (const owner of ['D', 'M'] as const) {
+    const p = pace[owner]
+    if (!p) continue
+    if (isDay(p.startedAt) || isDay(p.due)) return true
+    if (p.sessions.some((s) => s.start || s.end)) return true
+  }
+  return false
+}
+
 export function mergePace(
   remote: PaceState | null,
   local: PaceState,
@@ -231,31 +305,39 @@ export function mergePace(
   for (const owner of ['D', 'M'] as const) {
     const remoteP = source[owner]
     const localP = local[owner]
-    const startedAt = localP?.startedAt || remoteP?.startedAt || ''
-    const due = localP?.due || remoteP?.due || ''
-    if (!startedAt && !due) {
+    if (!localP && !remoteP) {
       merged[owner] = null
       continue
     }
-    const localNewer = (localP?.updatedAt ?? 0) >= (remoteP?.updatedAt ?? 0)
-    const dates = localNewer ? localP : remoteP
-    const begun =
-      isDay(dates?.startedAt || startedAt) &&
-      diffDays(dates?.startedAt || startedAt, today) >= 0
+    // Prefer remote when this device has no person yet (fresh phone).
+    const localNewer =
+      localP != null &&
+      (localP.updatedAt ?? 0) >= (remoteP?.updatedAt ?? 0)
+    const dates = localNewer ? localP : remoteP ?? localP
+    const startedAt = dates?.startedAt || localP?.startedAt || remoteP?.startedAt || ''
+    const due = dates?.due || localP?.due || remoteP?.due || ''
+    const sessions =
+      dates?.sessions?.length
+        ? dates.sessions
+        : localP?.sessions?.length
+          ? localP.sessions
+          : (remoteP?.sessions ?? [])
+    if (!startedAt && !due && sessions.length === 0) {
+      merged[owner] = null
+      continue
+    }
+    const begun = isDay(startedAt) && diffDays(startedAt, today) >= 0
     const samples: Record<string, number> = {
       ...remoteP?.samples,
       ...localP?.samples,
     }
     if (begun) samples[today] = remaining[owner]
-    const sessionStart = dates?.sessionStart || localP?.sessionStart || remoteP?.sessionStart
-    const sessionEnd = dates?.sessionEnd || localP?.sessionEnd || remoteP?.sessionEnd
     merged[owner] = {
-      due: dates?.due || due,
-      startedAt: dates?.startedAt || startedAt,
-      ...(sessionStart && isDay(sessionStart) ? { sessionStart } : {}),
-      ...(sessionEnd && isDay(sessionEnd) ? { sessionEnd } : {}),
+      due,
+      startedAt,
+      sessions: sanitizeSessions(sessions),
       samples,
-      updatedAt: dates?.updatedAt,
+      updatedAt: dates?.updatedAt ?? localP?.updatedAt ?? remoteP?.updatedAt,
     }
   }
   return merged
