@@ -9,6 +9,7 @@ import {
   snapshotFor,
   todayKey,
   type PaceState,
+  type PersonDatePatch,
   type PersonPace,
 } from './pace'
 
@@ -18,10 +19,7 @@ interface Props {
   remaining: Record<Owner, number>
   must: Record<Owner, number>
   sure: Record<Owner, number>
-  onDates: (
-    owner: Owner,
-    patch: { startedAt?: string | null; due?: string | null },
-  ) => void
+  onDates: (owner: Owner, patch: PersonDatePatch) => void
 }
 
 const OWNERS: Owner[] = ['D', 'M']
@@ -66,6 +64,33 @@ function viewOf(
   }
 }
 
+function DateField({
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string
+  value: string
+  min?: string
+  max?: string
+  onChange: (next: string | null) => void
+}) {
+  return (
+    <label className="burn__due">
+      <span>{label}</span>
+      <input
+        type="date"
+        value={value}
+        min={min || undefined}
+        max={max || undefined}
+        onChange={(e) => onChange(e.target.value || null)}
+      />
+    </label>
+  )
+}
+
 export function BurndownPanel({
   pace,
   totals,
@@ -100,6 +125,7 @@ export function BurndownPanel({
         const person = view.person
         const snap = person ? snapshotFor(total, left, person, today) : null
         const ready = hasRange(person)
+        const hasSession = Boolean(person?.sessionStart && person?.sessionEnd)
 
         return (
           <article key={owner} className="burn">
@@ -112,33 +138,49 @@ export function BurndownPanel({
                         includePending ? 'все карточки' : 'обязательные карточки'
                       } должны быть закрыты`
                     : 'старт можно поставить позже — пока только готовитесь'}
+                  {hasSession
+                    ? ` · сессия ${formatDay(person!.sessionStart!)}–${formatDay(person!.sessionEnd!)}`
+                    : ''}
                 </p>
               </div>
-              <div className="burn__dates">
-                <label className="burn__due">
-                  <span>старт</span>
-                  <input
-                    type="date"
+            </header>
+
+            <div className="burn__dates">
+              <div className="burn__dates-group" role="group" aria-label="Темп">
+                <p className="burn__dates-label">темп</p>
+                <div className="burn__dates-row">
+                  <DateField
+                    label="старт"
                     value={person?.startedAt ?? ''}
                     max={person?.due || undefined}
-                    onChange={(e) =>
-                      onDates(owner, { startedAt: e.target.value || null })
-                    }
+                    onChange={(startedAt) => onDates(owner, { startedAt })}
                   />
-                </label>
-                <label className="burn__due">
-                  <span>дедлайн</span>
-                  <input
-                    type="date"
+                  <DateField
+                    label="дедлайн"
                     value={person?.due ?? ''}
                     min={person?.startedAt || undefined}
-                    onChange={(e) =>
-                      onDates(owner, { due: e.target.value || null })
-                    }
+                    onChange={(due) => onDates(owner, { due })}
                   />
-                </label>
+                </div>
               </div>
-            </header>
+              <div className="burn__dates-group" role="group" aria-label="Сессия">
+                <p className="burn__dates-label">сессия</p>
+                <div className="burn__dates-row">
+                  <DateField
+                    label="начало"
+                    value={person?.sessionStart ?? ''}
+                    max={person?.sessionEnd || undefined}
+                    onChange={(sessionStart) => onDates(owner, { sessionStart })}
+                  />
+                  <DateField
+                    label="финиш"
+                    value={person?.sessionEnd ?? ''}
+                    min={person?.sessionStart || undefined}
+                    onChange={(sessionEnd) => onDates(owner, { sessionEnd })}
+                  />
+                </div>
+              </div>
+            </div>
 
             {ready && person && snap ? (
               <>
@@ -148,7 +190,8 @@ export function BurndownPanel({
                   </p>
                   {snap.status === 'waiting' ? (
                     <p className="burn__compare">
-                      сдано {snap.done} из {total} · график с {formatDay(person.startedAt)}
+                      сдано {snap.done} из {total} · график с{' '}
+                      {formatDay(person.startedAt)}
                     </p>
                   ) : (
                     <p className="burn__compare">
@@ -168,12 +211,16 @@ export function BurndownPanel({
                 <p className="burn__legend">
                   <span className="burn__legend-now">сейчас</span>
                   <span className="burn__legend-ideal">идеальный темп</span>
+                  {hasSession ? (
+                    <span className="burn__legend-session">сессия</span>
+                  ) : null}
                 </p>
               </>
             ) : (
               <p className="burn__empty">
                 Укажи старт и дедлайн. Старт — день, с которого начинается
-                график, не обязательно сегодня.
+                график, не обязательно сегодня. Сессию можно задать отдельно —
+                на графике отметится зона.
               </p>
             )}
           </article>

@@ -88,12 +88,15 @@ function reasonLabel(reasons: LinkReason[]): string {
 }
 
 function jumpToCard(id: string, preferCol?: string) {
-  const nodes = [
-    ...document.querySelectorAll<HTMLElement>(`[data-card-id="${id}"]`),
-  ]
-  const el =
-    (preferCol && nodes.find((n) => n.dataset.col === preferCol)) || nodes[0]
-  el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  const run = () => {
+    const nodes = [
+      ...document.querySelectorAll<HTMLElement>(`[data-card-id="${id}"]`),
+    ]
+    const el =
+      (preferCol && nodes.find((n) => n.dataset.col === preferCol)) || nodes[0]
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+  requestAnimationFrame(() => requestAnimationFrame(run))
 }
 
 export function KanbanBoard({
@@ -175,6 +178,11 @@ export function KanbanBoard({
         onEdit={onEdit}
         compact={compact}
         onMove={onMove}
+        onJump={
+          compact
+            ? (id, preferCol) => jumpToCard(id, preferCol)
+            : undefined
+        }
       />
     )
   }

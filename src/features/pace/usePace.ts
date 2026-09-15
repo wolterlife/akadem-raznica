@@ -11,6 +11,7 @@ import {
   stampSamples,
   todayKey,
   type PaceState,
+  type PersonDatePatch,
 } from './pace'
 
 const PULL_MS = 15_000
@@ -76,10 +77,7 @@ export function usePace(
     return () => window.clearTimeout(t)
   }, [pace, shared, ready])
 
-  function setDates(
-    owner: Owner,
-    patch: { startedAt?: string | null; due?: string | null },
-  ) {
+  function setDates(owner: Owner, patch: PersonDatePatch) {
     setPace((prev) =>
       setPersonDates(prev, owner, patch, remainingRef.current[owner], todayKey()),
     )

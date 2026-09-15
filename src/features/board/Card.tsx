@@ -3,12 +3,19 @@ import { useDraggable } from '@dnd-kit/core'
 import type { Assessment, ColumnId, MatchKind } from '../../types'
 import { TYPE_LABEL } from '../../types'
 import type { PresenceUser } from '../../presence'
-import { getCardBadges, listCardRelations, relationCaption } from './badges'
+import {
+  getCardBadges,
+  listCardRelations,
+  listExternalPeers,
+  peerOwnersLabel,
+  peerWhy,
+  relationCaption,
+} from './badges'
 import { ProfessorPhotoButton } from './ProfessorPhoto'
 import { professorLabel } from '../../professors'
 import { WhereChip } from '../whereabouts/WhereChip'
 import { closedCounterpart } from '../../sync'
-import { columnOwner, isDoneFor, isFullyDone, moveTargets, noteFor } from './progress'
+import { columnOwner, isDoneFor, isFullyDone, isShared, moveTargets, noteFor } from './progress'
 
 interface CardProps {
   item: Assessment
@@ -22,6 +29,7 @@ interface CardProps {
   colId?: ColumnId
   compact?: boolean
   onMove?: (id: string, column: ColumnId, fromColumn?: ColumnId) => void
+  onJump?: (id: string, preferCol?: ColumnId) => void
 }
 
 function stopDrag(e: PointerEvent | MouseEvent | TouchEvent) {
@@ -44,6 +52,7 @@ export function Card({
   colId,
   compact = false,
   onMove,
+  onJump,
 }: CardProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({ id: dragId ?? item.id, disabled: compact })
@@ -54,12 +63,13 @@ export function Card({
       }
     : undefined
 
-  const both = item.owners.includes('D') && item.owners.includes('M')
+  const both = isShared(item)
   const owner = viewOwner(colId)
   const done = isFullyDone(item)
   const badges = getCardBadges(item, allItems, owner)
   const matchBadge = badges.find((b) => b.scope === 'external')
   const peerClosed = closedCounterpart(item, allItems)
+  const externalPeers = compact && !done ? listExternalPeers(item, allItems) : []
   const internal = badges.filter((b) => b.scope === 'internal')
   const internalRelations = done
     ? []
@@ -71,10 +81,19 @@ export function Card({
   const noteD = noteFor(item, 'D')
   const noteM = noteFor(item, 'M')
   const moves = compact && colId && onMove ? moveTargets(item, colId) : []
+  const matchText =
+    compact && both && matchBadge?.kind === 'ideal'
+      ? 'общая карточка D и M'
+      : matchBadge?.text
 
   function toggleLinks() {
     if (linkState === 'focus') onHoverChange?.(null)
     else onHoverChange?.(item.id, colId)
+  }
+
+  function jumpTo(id: string, preferCol?: ColumnId) {
+    onHoverChange?.(id, preferCol)
+    onJump?.(id, preferCol)
   }
 
   return (
@@ -155,10 +174,10 @@ export function Card({
       </p>
       <WhereChip name={item.professor} />
 
-      {(matchBadge || peerClosed) && (
+      {(matchBadge || peerClosed || externalPeers.length > 0) && (
         <div className="card__group">
           <p className="card__group-label">между D и M</p>
-          {matchBadge ? (
+          {matchBadge && matchText && externalPeers.length === 0 ? (
             <p
               className={`card__match ${
                 matchBadge.kind === 'ideal'
@@ -168,13 +187,46 @@ export function Card({
                     : 'card__match--partial'
               }`}
             >
-              {matchBadge.text}
+              {matchText}
             </p>
           ) : null}
           {peerClosed ? (
             <p className="card__match card__match--peer-done">
               {peerClosed} уже закрыл — у {item.owners[0]} ещё открыто
             </p>
+          ) : null}
+          {externalPeers.length > 0 ? (
+            <ul className="card__links" aria-label="Связанные у другого">
+              {externalPeers.map((rel) => {
+                const other =
+                  rel.owners.find((o) => o !== owner) ?? rel.owners[0]
+                const prefer: ColumnId | undefined =
+                  other === 'M' ? 'm' : other === 'D' ? 'd' : undefined
+                return (
+                  <li key={rel.id}>
+                    <button
+                      type="button"
+                      className="card__link-jump"
+                      onPointerDown={stopDrag}
+                      onMouseDown={stopDrag}
+                      onTouchStart={stopDrag}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        jumpTo(rel.id, prefer)
+                      }}
+                    >
+                      <span className="card__link-name">
+                        {rel.short}
+                        {peerOwnersLabel(rel.owners)
+                          ? ` · ${peerOwnersLabel(rel.owners)}`
+                          : ''}
+                      </span>
+                      <span className="card__link-why">{peerWhy(rel.reasons)}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
           ) : null}
         </div>
       )}
@@ -189,14 +241,43 @@ export function Card({
               {b.text}
             </p>
           ))}
-          {internalRelations.map((rel) => {
-            const cap = relationCaption(item, rel)
-            return (
-              <p key={rel.id} className="card__match card__match--internal">
-                {cap.title ? `${cap.title} · ${cap.why}` : cap.why}
-              </p>
-            )
-          })}
+          {compact && internalRelations.length > 0 ? (
+            <ul className="card__links" aria-label="Связанные у себя">
+              {internalRelations.map((rel) => {
+                const cap = relationCaption(item, rel)
+                return (
+                  <li key={rel.id}>
+                    <button
+                      type="button"
+                      className="card__link-jump"
+                      onPointerDown={stopDrag}
+                      onMouseDown={stopDrag}
+                      onTouchStart={stopDrag}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        jumpTo(rel.id, colId)
+                      }}
+                    >
+                      <span className="card__link-name">
+                        {rel.short}
+                        {cap.title ? ` · ${cap.title}` : ''}
+                      </span>
+                      <span className="card__link-why">{cap.why}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            internalRelations.map((rel) => {
+              const cap = relationCaption(item, rel)
+              return (
+                <p key={rel.id} className="card__match card__match--internal">
+                  {cap.title ? `${cap.title} · ${cap.why}` : cap.why}
+                </p>
+              )
+            })
+          )}
         </div>
       ) : null}
 

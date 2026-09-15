@@ -24,6 +24,7 @@ interface Hover {
   idealRemain: number
   shouldBeDone: number
   actualRemain: number | null
+  inSession: boolean
 }
 
 function niceMax(value: number) {
@@ -62,6 +63,13 @@ function svgX(svg: SVGSVGElement, clientX: number) {
   const rect = svg.getBoundingClientRect()
   if (!rect.width) return PAD.l
   return ((clientX - rect.left) / rect.width) * W
+}
+
+/** Clamp a day into [lo, hi] by chronological order. */
+function clampDate(day: string, lo: string, hi: string) {
+  if (diffDays(day, lo) > 0) return lo
+  if (diffDays(hi, day) > 0) return hi
+  return day
 }
 
 export function BurndownChart({ person, total, left, today }: Props) {
@@ -129,17 +137,49 @@ export function BurndownChart({ person, total, left, today }: Props) {
   const todayX = xAt(today)
   const showToday = begun && diffDays(today, due) >= 0
 
+  const sessionStart = person.sessionStart
+  const sessionEnd = person.sessionEnd
+  const sessionOk =
+    Boolean(sessionStart && sessionEnd) &&
+    diffDays(sessionStart!, sessionEnd!) >= 0
+  // Overlap of session with chart range [start, due]
+  const intersects =
+    sessionOk &&
+    diffDays(start, sessionEnd!) >= 0 &&
+    diffDays(sessionStart!, due) >= 0
+  const sessionFrom = intersects
+    ? clampDate(sessionStart!, start, due)
+    : null
+  const sessionTo = intersects ? clampDate(sessionEnd!, start, due) : null
+  const showSession = Boolean(
+    sessionFrom &&
+      sessionTo &&
+      diffDays(sessionFrom, sessionTo) >= 0,
+  )
+
+  const sessionX = showSession ? xAt(sessionFrom!) : 0
+  const sessionW = showSession
+    ? Math.max(2, xAt(sessionTo!) - xAt(sessionFrom!))
+    : 0
+
   function onMove(e: PointerEvent<SVGSVGElement>) {
     const x = svgX(e.currentTarget, e.clientX)
     const date = dateAtX(x)
     const remain = idealLeft(total, start, due, date)
     const actual = actualPts.find((s) => s.date === date)?.remaining ?? null
+    const inSession = Boolean(
+      sessionStart &&
+        sessionEnd &&
+        diffDays(sessionStart, date) >= 0 &&
+        diffDays(date, sessionEnd) >= 0,
+    )
     setHover({
       date,
       x: xAt(date),
       idealRemain: remain,
       shouldBeDone: Math.round(total - remain),
       actualRemain: actual,
+      inSession,
     })
   }
 
@@ -153,7 +193,8 @@ export function BurndownChart({ person, total, left, today }: Props) {
         className="burn__svg"
         viewBox={`0 0 ${W} ${H}`}
         role="img"
-        aria-label="График burndown. Наведи, чтобы увидеть план на день."
+        aria-label="График burndown. Нажми или наведи, чтобы увидеть план на день."
+        onPointerDown={onMove}
         onPointerMove={onMove}
         onPointerLeave={() => setHover(null)}
       >
@@ -171,6 +212,16 @@ export function BurndownChart({ person, total, left, today }: Props) {
             </text>
           </g>
         ))}
+
+        {showSession ? (
+          <rect
+            className="burn__session"
+            x={sessionX}
+            y={PAD.t}
+            width={sessionW}
+            height={innerH}
+          />
+        ) : null}
 
         {xTicks(start, due).map((key) => (
           <text
@@ -235,6 +286,7 @@ export function BurndownChart({ person, total, left, today }: Props) {
           style={{ left: `${tipLeft}%` }}
         >
           <strong>{formatDay(hover.date)}</strong>
+          {hover.inSession ? <p className="burn__tip-session">сессия</p> : null}
           <p>должно остаться {Math.round(hover.idealRemain)}</p>
           <p>должно быть сдано {hover.shouldBeDone} из {total}</p>
           {hover.actualRemain != null ? (
@@ -243,7 +295,8 @@ export function BurndownChart({ person, total, left, today }: Props) {
         </div>
       ) : null}
       <p className="burn__hint" style={{ visibility: hover ? 'hidden' : 'visible' }}>
-        наведи на график — точное число на день
+        <span className="burn__hint-desk">наведи на график — точное число на день</span>
+        <span className="burn__hint-mobile">нажми на график — точное число на день</span>
       </p>
     </div>
   )

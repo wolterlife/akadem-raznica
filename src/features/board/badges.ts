@@ -1,6 +1,7 @@
 import type { Assessment, AssessmentType, MatchKind, Owner } from '../../types'
 import { TYPE_LABEL } from '../../types'
 import { getMatchKind, getRelatedLinks, normalize, profKey, type LinkReason } from '../../sync'
+import { buildAlignRows } from './filters'
 import { isFullyDone, isPendingDone, isShared } from './progress'
 
 export type BadgeKind =
@@ -111,6 +112,35 @@ export interface CardRelation {
   scope: LinkScope
 }
 
+function toRelation(
+  other: Assessment,
+  reasons: LinkReason[],
+  scope: LinkScope,
+): CardRelation {
+  return {
+    id: other.id,
+    subject: other.subject,
+    short: other.short,
+    type: other.type,
+    professor: other.professor.trim(),
+    owners: other.owners,
+    reasons,
+    scope,
+  }
+}
+
+function coversBothOwners(a: Assessment, b: Assessment) {
+  const owners = new Set([...a.owners, ...b.owners])
+  return owners.has('D') && owners.has('M')
+}
+
+function reasonRank(reasons: LinkReason[]) {
+  if (reasons.includes('subject') && reasons.includes('professor')) return 0
+  if (reasons.includes('subject') || reasons.includes('shared')) return 1
+  if (reasons.includes('professor')) return 2
+  return 3
+}
+
 export function listCardRelations(
   card: Assessment,
   all: Assessment[],
@@ -132,18 +162,61 @@ export function listCardRelations(
     const thisIsOnlyThisPerson = !card.owners.includes(counterpart)
     const otherInvolvesOtherPerson = other.owners.includes(counterpart)
     if (thisIsOnlyThisPerson && otherInvolvesOtherPerson) continue
-    out.push({
-      id: other.id,
-      subject: other.subject,
-      short: other.short,
-      type: other.type,
-      professor: other.professor.trim(),
-      owners: other.owners,
-      reasons,
-      scope: 'internal',
-    })
+    out.push(toRelation(other, reasons, 'internal'))
   }
   return out.slice(0, 4)
+}
+
+/** D↔M peers for mobile jump buttons — named cards, not abstract match labels. */
+export function listExternalPeers(
+  card: Assessment,
+  all: Assessment[],
+): CardRelation[] {
+  if (isFullyDone(card) || isPendingDone(card) || isShared(card)) return []
+  const who = card.owners.length === 1 ? card.owners[0] : null
+  if (!who) return []
+  const counterpart: Owner = who === 'D' ? 'M' : 'D'
+  const links = getRelatedLinks(card, all)
+  const out: CardRelation[] = []
+  for (const other of all) {
+    if (other.id === card.id || isFullyDone(other) || isPendingDone(other)) {
+      continue
+    }
+    if (!other.owners.includes(counterpart)) continue
+    const reasons = links.get(other.id)
+    if (!reasons?.length) continue
+    if (!coversBothOwners(card, other)) continue
+    out.push(toRelation(other, reasons, 'external'))
+  }
+
+  const bySubject = out.filter(
+    (r) => r.reasons.includes('subject') || r.reasons.includes('shared'),
+  )
+  if (bySubject.length) {
+    return bySubject
+      .sort((a, b) => reasonRank(a.reasons) - reasonRank(b.reasons))
+      .slice(0, 3)
+  }
+
+  // Professor-only: same pairing as desktop column alignment.
+  const open = all.filter((a) => !isFullyDone(a) && !isPendingDone(a))
+  const rows = buildAlignRows(open, all, 'links')
+  const row = rows.find((r) => r.d?.id === card.id || r.m?.id === card.id)
+  const aligned = row
+    ? row.d?.id === card.id
+      ? row.m
+      : row.d
+    : null
+  if (aligned && aligned.id !== card.id) {
+    const reasons = links.get(aligned.id)
+    if (reasons?.length) return [toRelation(aligned, reasons, 'external')]
+  }
+
+  const exclusive = out.filter((r) => r.owners.length === 1)
+  const pool = exclusive.length ? exclusive : out
+  return pool
+    .sort((a, b) => reasonRank(a.reasons) - reasonRank(b.reasons))
+    .slice(0, 2)
 }
 
 export function relationCaption(card: Assessment, rel: CardRelation) {
@@ -160,4 +233,18 @@ export function relationCaption(card: Assessment, rel: CardRelation) {
     title: rel.subject,
     why: TYPE_LABEL[rel.type],
   }
+}
+
+export function peerWhy(reasons: LinkReason[]) {
+  const hasSub = reasons.includes('subject') || reasons.includes('shared')
+  const hasProf = reasons.includes('professor')
+  if (hasSub && hasProf) return 'предмет и препод'
+  if (hasSub) return 'тот же предмет'
+  if (hasProf) return 'тот же преподаватель'
+  return 'связь'
+}
+
+export function peerOwnersLabel(owners: Owner[]) {
+  if (owners.includes('D') && owners.includes('M')) return 'D+M'
+  return owners[0] ?? ''
 }

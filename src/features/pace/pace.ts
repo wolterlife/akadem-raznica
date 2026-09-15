@@ -8,6 +8,9 @@ const PACE_KEY = 'akadem-raznica:pace'
 export interface PersonPace {
   due: string
   startedAt: string
+  /** Exam session window — shaded on the chart; optional. */
+  sessionStart?: string
+  sessionEnd?: string
   samples: Record<string, number>
   updatedAt?: number
 }
@@ -104,9 +107,13 @@ function parsePerson(val: unknown): PersonPace | null {
       }
     }
   }
+  const sessionStart = isDay(rec.sessionStart) ? rec.sessionStart : undefined
+  const sessionEnd = isDay(rec.sessionEnd) ? rec.sessionEnd : undefined
   return {
     due,
     startedAt,
+    ...(sessionStart ? { sessionStart } : {}),
+    ...(sessionEnd ? { sessionEnd } : {}),
     samples,
     updatedAt: typeof rec.updatedAt === 'number' ? rec.updatedAt : undefined,
   }
@@ -141,30 +148,50 @@ export async function pushPace(pace: PaceState): Promise<void> {
   })
 }
 
+export type PersonDatePatch = {
+  startedAt?: string | null
+  due?: string | null
+  sessionStart?: string | null
+  sessionEnd?: string | null
+}
+
+function dayOrEmpty(value: string | null | undefined, fallback: string) {
+  if (value === undefined) return fallback
+  if (value === null || value === '') return ''
+  return isDay(value) ? value : fallback
+}
+
 export function setPersonDates(
   prev: PaceState,
   owner: Owner,
-  patch: { startedAt?: string | null; due?: string | null },
+  patch: PersonDatePatch,
   left: number,
   today: string,
 ): PaceState {
   const cur = prev[owner]
-  const startedAt =
-    patch.startedAt !== undefined ? patch.startedAt : (cur?.startedAt ?? null)
-  const due = patch.due !== undefined ? patch.due : (cur?.due ?? null)
-  if (!startedAt && !due) return { ...prev, [owner]: null }
+  const startedAt = dayOrEmpty(patch.startedAt, cur?.startedAt ?? '')
+  const due = dayOrEmpty(patch.due, cur?.due ?? '')
+  const sessionStart = dayOrEmpty(
+    patch.sessionStart,
+    cur?.sessionStart ?? '',
+  )
+  const sessionEnd = dayOrEmpty(patch.sessionEnd, cur?.sessionEnd ?? '')
 
-  const started = startedAt && isDay(startedAt) ? startedAt : ''
-  const dueDay = due && isDay(due) ? due : ''
-  const begun = Boolean(started && diffDays(started, today) >= 0)
+  if (!startedAt && !due && !sessionStart && !sessionEnd) {
+    return { ...prev, [owner]: null }
+  }
+
+  const begun = Boolean(startedAt && diffDays(startedAt, today) >= 0)
   const samples = { ...(cur?.samples ?? {}) }
   if (begun) samples[today] = left
 
   return {
     ...prev,
     [owner]: {
-      startedAt: started,
-      due: dueDay,
+      startedAt,
+      due,
+      ...(sessionStart ? { sessionStart } : {}),
+      ...(sessionEnd ? { sessionEnd } : {}),
       samples,
       updatedAt: Date.now(),
     },
@@ -220,9 +247,13 @@ export function mergePace(
       ...localP?.samples,
     }
     if (begun) samples[today] = remaining[owner]
+    const sessionStart = dates?.sessionStart || localP?.sessionStart || remoteP?.sessionStart
+    const sessionEnd = dates?.sessionEnd || localP?.sessionEnd || remoteP?.sessionEnd
     merged[owner] = {
       due: dates?.due || due,
       startedAt: dates?.startedAt || startedAt,
+      ...(sessionStart && isDay(sessionStart) ? { sessionStart } : {}),
+      ...(sessionEnd && isDay(sessionEnd) ? { sessionEnd } : {}),
       samples,
       updatedAt: dates?.updatedAt,
     }
