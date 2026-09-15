@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Owner } from '../../types'
 import { loadPaceCountPending, savePaceCountPending } from '../../prefs'
 import { BurndownChart } from './BurndownChart'
@@ -67,6 +67,18 @@ function viewOf(
   }
 }
 
+/** Year looks finished enough to store (not a typing glitch like 0002). */
+function isCommittableDate(iso: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false
+  const year = Number(iso.slice(0, 4))
+  return year >= 2000 && year <= 2100
+}
+
+/**
+ * Native date inputs fire onChange with zero-padded years (0002…) while the
+ * year segment is being typed. Commit to parent only when the year is plausible,
+ * keep a local draft so day/month are not wiped mid-edit.
+ */
 function DateField({
   label,
   value,
@@ -80,22 +92,48 @@ function DateField({
   max?: string
   onChange: (next: string | null) => void
 }) {
+  const [draft, setDraft] = useState(value)
+  const focusedRef = useRef(false)
+
+  useEffect(() => {
+    if (!focusedRef.current) setDraft(value)
+  }, [value])
+
   return (
     <label className="burn__due">
       <span>{label}</span>
       <input
         type="date"
-        value={value}
-        min={min || '2000-01-01'}
-        max={max || '2100-12-31'}
+        value={draft}
+        min={min || undefined}
+        max={max || undefined}
+        onFocus={() => {
+          focusedRef.current = true
+          setDraft(value)
+        }}
         onChange={(e) => {
-          const next = e.target.value || null
-          if (next) {
-            const year = Number(next.slice(0, 4))
-            // Ignore glitched years like 0002 while the year segment is edited.
-            if (year < 2000 || year > 2100) return
+          const next = e.target.value
+          setDraft(next)
+          if (!next) {
+            onChange(null)
+            return
           }
-          onChange(next)
+          // Calendar pick / finished year → save. Mid-year typing → draft only.
+          if (isCommittableDate(next)) onChange(next)
+        }}
+        onBlur={() => {
+          focusedRef.current = false
+          if (!draft) {
+            setDraft('')
+            if (value) onChange(null)
+            return
+          }
+          if (isCommittableDate(draft)) {
+            if (draft !== value) onChange(draft)
+            return
+          }
+          // Incomplete/glitched year — restore last saved value.
+          setDraft(value)
         }}
       />
     </label>
