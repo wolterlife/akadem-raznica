@@ -4,6 +4,7 @@ import { loadPaceCountPending, savePaceCountPending } from '../../prefs'
 import { BurndownChart } from './BurndownChart'
 import {
   completeSessions,
+  emptySession,
   formatDay,
   hasRange,
   personWithoutPending,
@@ -85,9 +86,17 @@ function DateField({
       <input
         type="date"
         value={value}
-        min={min || undefined}
-        max={max || undefined}
-        onChange={(e) => onChange(e.target.value || null)}
+        min={min || '2000-01-01'}
+        max={max || '2100-12-31'}
+        onChange={(e) => {
+          const next = e.target.value || null
+          if (next) {
+            const year = Number(next.slice(0, 4))
+            // Ignore glitched years like 0002 while the year segment is edited.
+            if (year < 2000 || year > 2100) return
+          }
+          onChange(next)
+        }}
       />
     </label>
   )
@@ -192,7 +201,7 @@ export function BurndownPanel({
                     className="burn__session-add"
                     onClick={() =>
                       onDates(owner, {
-                        sessions: [...sessions, { start: '', end: '' }],
+                        sessions: [...sessions, emptySession()],
                       })
                     }
                   >
@@ -206,7 +215,7 @@ export function BurndownPanel({
                 ) : (
                   <ul className="burn__session-list">
                     {sessions.map((session, index) => (
-                      <li key={`${index}-${session.start}-${session.end}`} className="burn__session-row">
+                      <li key={session.id} className="burn__session-row">
                         <div className="burn__dates-row">
                           <DateField
                             label="начало"

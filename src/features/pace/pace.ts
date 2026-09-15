@@ -6,6 +6,8 @@ const PACE_PATH = 'pace'
 const PACE_KEY = 'akadem-raznica:pace'
 
 export interface PaceSession {
+  /** Stable row id so date inputs keep focus while typing. */
+  id: string
   start: string
   end: string
 }
@@ -77,16 +79,31 @@ export function saveLocalPace(pace: PaceState) {
 }
 
 function isDay(value: unknown): value is string {
-  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false
+  }
+  const year = Number(value.slice(0, 4))
+  // Reject browser glitches like 0002-10-14 while typing the year.
+  return year >= 2000 && year <= 2100
 }
 
-function parseSessionRow(val: unknown): PaceSession | null {
+export function newSessionId() {
+  return crypto.randomUUID()
+}
+
+export function emptySession(): PaceSession {
+  return { id: newSessionId(), start: '', end: '' }
+}
+
+function parseSessionRow(val: unknown, index: number): PaceSession | null {
   if (!val || typeof val !== 'object') return null
   const rec = val as Record<string, unknown>
   const start = isDay(rec.start) ? rec.start : ''
   const end = isDay(rec.end) ? rec.end : ''
-  if (!start && !end) return null
-  return { start, end }
+  const storedId = typeof rec.id === 'string' ? rec.id.trim() : ''
+  const id = storedId || `row-${index}-${start}-${end}`
+  if (!start && !end && !storedId) return null
+  return { id, start, end }
 }
 
 /** Normalize stored sessions; migrates legacy sessionStart/sessionEnd. */
@@ -97,16 +114,16 @@ export function normalizeSessions(
 ): PaceSession[] {
   const out: PaceSession[] = []
   if (Array.isArray(raw)) {
-    for (const item of raw) {
-      const row = parseSessionRow(item)
+    raw.forEach((item, index) => {
+      const row = parseSessionRow(item, index)
       if (row) out.push(row)
-    }
+    })
   } else if (raw && typeof raw === 'object') {
     // Firebase may store dense arrays as objects { "0": {...} }
-    for (const item of Object.values(raw as Record<string, unknown>)) {
-      const row = parseSessionRow(item)
+    Object.values(raw as Record<string, unknown>).forEach((item, index) => {
+      const row = parseSessionRow(item, index)
       if (row) out.push(row)
-    }
+    })
   }
   if (
     out.length === 0 &&
@@ -114,7 +131,11 @@ export function normalizeSessions(
     isDay(legacyEnd) &&
     diffDays(legacyStart, legacyEnd) >= 0
   ) {
-    out.push({ start: legacyStart, end: legacyEnd })
+    out.push({
+      id: `legacy-${legacyStart}-${legacyEnd}`,
+      start: legacyStart,
+      end: legacyEnd,
+    })
   }
   return out
 }
@@ -122,6 +143,7 @@ export function normalizeSessions(
 /** Keep user-edited rows, including incomplete drafts. */
 export function sanitizeSessions(list: PaceSession[]): PaceSession[] {
   return list.map((s) => ({
+    id: s.id?.trim() ? s.id : newSessionId(),
     start: isDay(s.start) ? s.start : '',
     end: isDay(s.end) ? s.end : '',
   }))
