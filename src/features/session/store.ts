@@ -37,7 +37,7 @@ export function emptyProgress(): ExamProgress {
 }
 
 /** Стартовые данные (TG группы, 16.10). Версию поднимать при изменении. */
-export const SEED_VERSION = 4
+export const SEED_VERSION = 5
 
 const lab = (id: string, text: string, done = false): CheckItem => ({ id, text, done })
 
@@ -50,8 +50,9 @@ export const SEED_HINTS: Record<string, Partial<ExamProgress>> = {
     labs: [
       lab('sitaris-1', 'Диаграмма 1', true),
       lab('sitaris-2', 'Диаграмма 2', true),
-      lab('sitaris-3', 'Классовая диаграмма (ID на связях)'),
+      lab('sitaris-3', 'Классовая диаграмма (ID на связях)', true),
     ],
+    status: 'admitted',
   },
   'Компьютерные сети': {
     format:
@@ -109,6 +110,15 @@ const LAB_MIGRATIONS: Record<number, Record<string, (labs: CheckItem[]) => Check
             : l,
         ),
   },
+  5: {
+    'Средства и технологии анализа и разработки информационных систем': (labs) =>
+      labs.map((l) => ({ ...l, done: true })),
+  },
+}
+
+/** Правки статуса в сохранённых записях (не понижаем «сдал»). */
+const STATUS_MIGRATIONS: Record<number, Record<string, ExamStatus>> = {
+  5: { 'Средства и технологии анализа и разработки информационных систем': 'admitted' },
 }
 
 /** Дописывает стартовые данные в уже сохранённую запись, не трогая введённое. */
@@ -120,7 +130,12 @@ export function applySeed(title: string, p: ExamProgress): ExamProgress {
     const fix = byTitle[title]
     if (fix && (p.seedV ?? 0) < Number(v)) labs = fix(labs)
   }
-  p = { ...p, labs }
+  let status = p.status
+  for (const [v, byTitle] of Object.entries(STATUS_MIGRATIONS)) {
+    const next = byTitle[title]
+    if (next && (p.seedV ?? 0) < Number(v) && status === 'prep') status = next
+  }
+  p = { ...p, labs, status }
   const have = new Set(p.labs.map((l) => l.text.trim().toLowerCase()))
   const haveIds = new Set(p.labs.map((l) => l.id))
   const extra = (seed.labs ?? []).filter(
