@@ -20,6 +20,7 @@ import { BurndownPanel } from './features/pace/BurndownPanel'
 import { usePace } from './features/pace/usePace'
 import { loadProfFilter, saveProfFilter } from './prefs'
 import { WhereProvider } from './features/whereabouts/WhereProvider'
+import { SessionTab } from './features/session/SessionTab'
 import './App.css'
 
 export default function App() {
@@ -40,6 +41,16 @@ export default function App() {
   const [profFilter, setProfFilter] = useState(loadProfFilter)
   const [sortKey, setSortKey] = useState<SortKey>('links')
   const [query, setQuery] = useState('')
+  const [tab, setTab] = useState<'board' | 'session'>(() =>
+    window.location.hash === '#session' ? 'session' : 'board',
+  )
+
+  useEffect(() => {
+    const next = tab === 'session' ? '#session' : ''
+    if (window.location.hash !== next) {
+      history.replaceState(null, '', `${window.location.pathname}${window.location.search}${next}`)
+    }
+  }, [tab])
 
   const { hoveredId, hoveredCol, onCardHover } = useCardHover()
   const { identity, setIdentity, online, editorsByCard, renameSelf } =
@@ -101,6 +112,26 @@ export default function App() {
       {shared && !identity && <NameGate onReady={setIdentity} />}
       <div className="glow" aria-hidden />
 
+      <nav className="tabs" aria-label="Разделы">
+        <button
+          type="button"
+          className={`chip${tab === 'board' ? ' chip--on' : ''}`}
+          onClick={() => setTab('board')}
+        >
+          Академразница
+        </button>
+        <button
+          type="button"
+          className={`chip${tab === 'session' ? ' chip--on' : ''}`}
+          onClick={() => setTab('session')}
+        >
+          Сессия
+        </button>
+      </nav>
+
+      {tab === 'session' ? (
+        <SessionTab shared={shared} />
+      ) : (
       <WhereProvider names={professors}>
       <BoardHeader
         syncStatus={syncStatus}
@@ -178,6 +209,7 @@ export default function App() {
         />
       )}
       </WhereProvider>
+      )}
     </div>
   )
 }

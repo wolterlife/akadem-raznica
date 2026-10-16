@@ -2318,3 +2318,213 @@
     display: inline;
   }
 }
+
+/* —— Сессия —— */
+.tabs {
+  position: relative;
+  display: flex;
+  gap: 4px;
+  width: fit-content;
+  margin-bottom: 16px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+}
+
+.session {
+  position: relative;
+}
+
+.session__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.session__top h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.session__lead {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.session__sum {
+  margin: 0;
+  color: var(--muted);
+}
+
+.session__sum strong {
+  color: var(--ideal);
+  font-size: 1.3rem;
+}
+
+.session__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+.exam {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--exam);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--card-ink);
+}
+
+.exam--admitted {
+  border-left-color: var(--match-partial);
+}
+
+.exam--passed {
+  border-left-color: var(--ideal);
+}
+
+.exam--failed {
+  border-left-color: var(--danger);
+}
+
+.exam--past {
+  opacity: 0.75;
+}
+
+.exam__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.exam__title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.exam__meta {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.exam__count {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.exam__count strong {
+  color: var(--accent);
+}
+
+.exam__count span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.exam__pairs {
+  margin: 0;
+  padding: 8px 12px 8px 26px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  font-size: 0.8rem;
+}
+
+.exam__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.exam__field > span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.exam input:not([type='checkbox']),
+.exam textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-2);
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.exam textarea {
+  resize: vertical;
+}
+
+.exam__labs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exam__labs li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.exam__labs label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  cursor: pointer;
+}
+
+.exam__labs .is-done {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.exam__x {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.exam__add {
+  display: flex;
+  gap: 6px;
+}
+
+.exam__status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.exam .exam__grade {
+  width: 90px;
+}
+
+@media (max-width: 600px) {
+  .session__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .session__top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
