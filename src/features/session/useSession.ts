@@ -7,7 +7,9 @@ import {
   mergeSession,
   pullSession,
   pushSession,
+  applySeed,
   SEED_HINTS,
+  SEED_VERSION,
   type ExamProgress,
   type SessionState,
 } from './store'
@@ -60,17 +62,21 @@ export function useSession(shared: boolean) {
   const exams: ExamInfo[] = bundle ? deriveExams(bundle.lessons, now) : []
 
   const progressOf = useCallback(
-    (exam: ExamInfo): ExamProgress =>
-      state[exam.key] ?? { ...emptyProgress(), ...SEED_HINTS[exam.title] },
+    (exam: ExamInfo): ExamProgress => {
+      const saved = state[exam.key]
+      return saved
+        ? applySeed(exam.title, saved)
+        : { ...emptyProgress(), ...SEED_HINTS[exam.title], seedV: SEED_VERSION }
+    },
     [state],
   )
 
   const update = useCallback(
     (exam: ExamInfo, patch: Partial<ExamProgress>) => {
-      const prev = stateRef.current[exam.key] ?? {
-        ...emptyProgress(),
-        ...SEED_HINTS[exam.title],
-      }
+      const saved = stateRef.current[exam.key]
+      const prev = saved
+        ? applySeed(exam.title, saved)
+        : { ...emptyProgress(), ...SEED_HINTS[exam.title], seedV: SEED_VERSION }
       const next: SessionState = {
         ...stateRef.current,
         [exam.key]: { ...prev, ...patch, updatedAt: Date.now() },
