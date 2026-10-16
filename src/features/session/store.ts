@@ -37,7 +37,7 @@ export function emptyProgress(): ExamProgress {
 }
 
 /** Стартовые данные (TG группы, 16.10). Версию поднимать при изменении. */
-export const SEED_VERSION = 2
+export const SEED_VERSION = 3
 
 const lab = (id: string, text: string, done = false): CheckItem => ({ id, text, done })
 
@@ -70,7 +70,8 @@ export const SEED_HINTS: Record<string, Partial<ExamProgress>> = {
   },
   'Компьютерные системы конечноэлементных расчетов': {
     materials:
-      'Курсовой до 04.11, записать на диск (CD); темы курсового — TG, тема КСКР (12.02); лабы, делавшиеся на парах — Google Drive из темы КСКР',
+      'Курсовой до 04.11, записать на диск (CD); темы курсового — TG, тема КСКР (12.02); лабы, делавшиеся на парах — Google Drive из темы КСКР\n' +
+      'Курсовой сдавать Дуниной на её лабах, ауд. 221: вт 9:50–11:00, чт 9:50–11:00, пт 9:50–13:15 и 14:00–15:00 (Минск). Срок до 04.11.',
     labs: [
       lab('ksker-3', 'ЛР3 МНК'),
       lab('ksker-4', 'ЛР4 Рунге-Кутта'),
@@ -83,7 +84,8 @@ export const SEED_HINTS: Record<string, Partial<ExamProgress>> = {
 function mergeText(user: string, seed?: string) {
   if (!seed) return user
   if (!user.trim()) return seed
-  return user.includes(seed) ? user : `${user}\n${seed}`
+  const missing = seed.split('\n').filter((line) => line.trim() && !user.includes(line))
+  return missing.length ? `${user}\n${missing.join('\n')}` : user
 }
 
 /** Дописывает стартовые данные в уже сохранённую запись, не трогая введённое. */
