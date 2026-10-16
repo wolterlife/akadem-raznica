@@ -37,7 +37,7 @@ export function emptyProgress(): ExamProgress {
 }
 
 /** Стартовые данные (TG группы, 16.10). Версию поднимать при изменении. */
-export const SEED_VERSION = 3
+export const SEED_VERSION = 4
 
 const lab = (id: string, text: string, done = false): CheckItem => ({ id, text, done })
 
@@ -58,7 +58,13 @@ export const SEED_HINTS: Record<string, Partial<ExamProgress>> = {
       'Тянем билет → отвечаем на вопрос. На минимальную оценку надо прийти; автоматы не обещали, возможна беседа по вопросу.',
     materials:
       'Вопросы — блоки после каждой темы в «Конспект лекций КС 2026 в2_5.pdf» (СДО); МУ КС ЛР.pdf; материалы Бизюка',
-    labs: [lab('ks-7', 'ЛР7 (DHCP)'), lab('ks-8', 'ЛР8 (Wi-Fi)')],
+    labs: [
+      lab('ks-1', 'ЛР1', true),
+      lab('ks-2', 'ЛР2', true),
+      lab('ks-3', 'ЛР3'),
+      lab('ks-4', 'ЛР4 (VLAN)'),
+      lab('ks-8', 'ЛР8 (Wi-Fi)'),
+    ],
   },
   'Высокоуровневые языки программирования': {
     materials: 'Лекции в СДО; инфы об экзамене пока нет',
@@ -71,7 +77,8 @@ export const SEED_HINTS: Record<string, Partial<ExamProgress>> = {
   'Компьютерные системы конечноэлементных расчетов': {
     materials:
       'Курсовой до 04.11, записать на диск (CD); темы курсового — TG, тема КСКР (12.02); лабы, делавшиеся на парах — Google Drive из темы КСКР\n' +
-      'Курсовой сдавать Дуниной на её лабах, ауд. 221: вт 9:50–11:00, чт 9:50–11:00, пт 9:50–13:15 и 14:00–15:00 (Минск). Срок до 04.11.',
+      'Курсовой сдавать Дуниной на её лабах, ауд. 221: вт 9:50–11:00, чт 9:50–11:00, пт 9:50–13:15 и 14:00–15:00 (Минск). Срок до 04.11.\n' +
+      'Пояснительная записка курсового — минимум 25 стр.',
     labs: [
       lab('ksker-3', 'ЛР3 МНК'),
       lab('ksker-4', 'ЛР4 Рунге-Кутта'),
@@ -88,10 +95,32 @@ function mergeText(user: string, seed?: string) {
   return missing.length ? `${user}\n${missing.join('\n')}` : user
 }
 
+const norm = (t: string) => t.trim().toLowerCase()
+
+/** Правки чек-листов в уже сохранённых записях: версия → предмет → правка. */
+const LAB_MIGRATIONS: Record<number, Record<string, (labs: CheckItem[]) => CheckItem[]>> = {
+  4: {
+    'Компьютерные сети': (labs) =>
+      labs
+        .filter((l) => l.id !== 'ks-7' && norm(l.text) !== norm('ЛР7 (DHCP)'))
+        .map((l) =>
+          ['ks-1', 'ks-2'].includes(l.id) || ['лр1', 'лр2'].includes(norm(l.text))
+            ? { ...l, done: true }
+            : l,
+        ),
+  },
+}
+
 /** Дописывает стартовые данные в уже сохранённую запись, не трогая введённое. */
 export function applySeed(title: string, p: ExamProgress): ExamProgress {
   if ((p.seedV ?? 0) >= SEED_VERSION) return p
   const seed = SEED_HINTS[title] ?? {}
+  let labs = p.labs
+  for (const [v, byTitle] of Object.entries(LAB_MIGRATIONS)) {
+    const fix = byTitle[title]
+    if (fix && (p.seedV ?? 0) < Number(v)) labs = fix(labs)
+  }
+  p = { ...p, labs }
   const have = new Set(p.labs.map((l) => l.text.trim().toLowerCase()))
   const haveIds = new Set(p.labs.map((l) => l.id))
   const extra = (seed.labs ?? []).filter(
