@@ -2390,10 +2390,6 @@
   border-left-color: var(--ideal);
 }
 
-.exam--failed {
-  border-left-color: var(--danger);
-}
-
 .exam--past {
   opacity: 0.75;
 }

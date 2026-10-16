@@ -5,13 +5,12 @@ import { getDb } from '../../firebase'
 const SESSION_PATH = 'session/D'
 const SESSION_KEY = 'akadem-raznica:session:v1'
 
-export type ExamStatus = 'prep' | 'admitted' | 'passed' | 'failed'
+export type ExamStatus = 'prep' | 'admitted' | 'passed'
 
 export const STATUS_LABEL: Record<ExamStatus, string> = {
-  prep: 'готовлюсь',
+  prep: 'in progress',
   admitted: 'допущен',
   passed: 'сдал',
-  failed: 'не сдал',
 }
 
 export interface CheckItem {
@@ -49,6 +48,11 @@ export const SEED_HINTS: Record<string, Partial<ExamProgress>> = {
   },
 }
 
+/** Старые значения (готовлюсь / не сдал) → in progress */
+function normalizeStatus(value: unknown): ExamStatus {
+  return value === 'admitted' || value === 'passed' ? value : 'prep'
+}
+
 function parse(val: unknown): SessionState {
   if (!val || typeof val !== 'object') return {}
   const out: SessionState = {}
@@ -57,6 +61,7 @@ function parse(val: unknown): SessionState {
       ...emptyProgress(),
       ...raw,
       labs: Array.isArray(raw?.labs) ? raw.labs : [],
+      status: normalizeStatus(raw?.status),
     }
   }
   return out

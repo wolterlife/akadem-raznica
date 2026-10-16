@@ -145,7 +145,7 @@ export function ExamCard({ exam, progress, now, onChange }: Props) {
             {STATUS_LABEL[s]}
           </button>
         ))}
-        {(progress.status === 'passed' || progress.grade) && (
+        {progress.status === 'passed' && (
           <input
             className="exam__grade"
             value={progress.grade}
