@@ -37,7 +37,7 @@ export function emptyProgress(): ExamProgress {
 }
 
 /** Стартовые данные (TG группы, 16.10). Версию поднимать при изменении. */
-export const SEED_VERSION = 5
+export const SEED_VERSION = 6
 
 const lab = (id: string, text: string, done = false): CheckItem => ({ id, text, done })
 
@@ -68,7 +68,13 @@ export const SEED_HINTS: Record<string, Partial<ExamProgress>> = {
     ],
   },
   'Высокоуровневые языки программирования': {
-    materials: 'Лекции в СДО; инфы об экзамене пока нет',
+    materials:
+      'Лекции в СДО; инфы об экзамене пока нет\n' +
+      'Лабы у Мацугановой: 24.10 11:40 и 14:00, ауд. 129 (Минск)',
+    labs: [
+      lab('vyap-1', 'ЛР1 SymPy (СДО: sdo.vstu.by/mod/resource/view.php?id=83590) — сделано 9 из 12, не защищена; уточнить, входят ли NumPy и графики'),
+      lab('vyap-2', 'ЛР2 — нужна (сказала Мацуганова), задание уточнить'),
+    ],
   },
   'Современные технологии серверной разработки': {
     format:
