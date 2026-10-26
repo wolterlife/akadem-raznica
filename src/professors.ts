@@ -50,6 +50,12 @@ const CATALOG: ProfessorProfile[] = [
     page: 'https://miit.vstu.by/department/staff/management/nikonova-tatyana-viktorovna/',
   },
   {
+    name: 'Рудко Елена Антоновна',
+    photo: 'rudko.jpg',
+    role: 'к. филос. н., доцент, зам. зав. каф. СГД',
+    page: 'https://sgd.vstu.by/department/staff/management/rudko-elena-antonovna/',
+  },
+  {
     name: 'Советникова Ольга Петровна',
     photo: 'sovetnikova.jpg',
     role: 'к. э. н., доцент, зав. каф. маркетинга и финансов',
@@ -60,6 +66,12 @@ const CATALOG: ProfessorProfile[] = [
     photo: 'subbotin.jpg',
     role: 'к. ист. н., доцент, зав. каф. СГД',
     page: 'https://sgd.vstu.by/department/staff/management/subbotin-aleksandr-aleksandrovich/',
+  },
+  {
+    name: 'Хаданёнак Виктор Мамертович',
+    photo: 'hadanyonak.jpg',
+    role: 'к. ист. н., доцент каф. СГД',
+    page: 'https://sgd.vstu.by/department/staff/mainstaff/hadanyonak-viktor-mamertovich/',
   },
 ]
 
