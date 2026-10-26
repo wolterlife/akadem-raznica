@@ -20,6 +20,12 @@ export function professorLabel(name: string) {
 
 const CATALOG: ProfessorProfile[] = [
   {
+    name: 'Казаков Вадим Евгеньевич',
+    photo: 'kazakov.jpg',
+    role: 'к. т. н., доцент, зав. каф. ИСиТ',
+    page: 'https://isit.vstu.by/index.php/structure/employees/kazakov',
+  },
+  {
     name: 'Коваленко Александр Вильямович',
     photo: 'kovalenko.jpg',
     role: 'ст. преподаватель, зам. зав. каф. МиИТ',
@@ -30,6 +36,12 @@ const CATALOG: ProfessorProfile[] = [
     photo: 'kostyreva.jpg',
     role: 'к. филол. н., доцент, зав. каф. иностранных языков',
     page: 'https://forlang.vstu.by/',
+  },
+  {
+    name: 'Науменко Андрей Михайлович',
+    photo: 'naumenko.png',
+    role: 'к. т. н., доцент, зав. каф. АПП',
+    page: 'https://at.vstu.by/department/staff/management/naumenko-andrej-mihajlovich/',
   },
   {
     name: 'Никонова Татьяна Викторовна',
